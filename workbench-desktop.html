@@ -628,6 +628,17 @@
   .auto-extract-banner .ab-act button:hover { background:rgba(244,243,240,.28); }
   .auto-extract-banner .ab-act button.primary { background:#f4f3f0; color:#232220; }
 
+  /* ---------- 外部消息汇总 ---------- */
+  .ext-paste { background:var(--surface-card); border:1px solid var(--border); border-radius:var(--radius-card); padding:14px; }
+  .ext-paste textarea { width:100%; min-height:140px; padding:12px; border:1px solid var(--border-input);
+    border-radius:var(--radius-tile); background:var(--surface-nested); color:var(--text); font:inherit; font-size:13.5px;
+    line-height:1.7; resize:vertical; outline:none; box-sizing:border-box; }
+  .ext-paste textarea:focus { border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-muted); }
+  .ext-actions { display:flex; gap:8px; align-items:center; margin-top:10px; }
+  .ext-actions .spacer { flex:1; }
+  .ext-result { margin-top:14px; }
+  .ext-paste textarea::placeholder { color:var(--text-tertiary); font-size:12.5px; line-height:1.6; }
+
   /* ---------- 提醒字段（todo 编辑器） ---------- */
   .remind-row { display:flex; gap:10px; align-items:center; }
   .remind-row .seg { flex:1; }
@@ -1430,6 +1441,7 @@ function render(){
   else if(view==="calendar") renderCalendar();
   else if(view==="auto") renderAutoExtract();
   else if(view==="dingtalk") renderDingTalk();
+  else if(view==="external") renderExternal();
   else renderModule(view);
 }
 
@@ -1440,6 +1452,7 @@ function buildNav(){
     .concat(CONFIG.modules.map(m=>`<div class="navi" data-go="${m.key}">${icon(m.icon,19)}${m.name}</div>`))
     .concat([
       `<div class="nav-sep">视图与集成</div>`,
+      `<div class="navi" data-go="external">${icon("send",19)}外部消息汇总</div>`,
       `<div class="navi" data-go="calendar">${icon("calendar",19)}日历视图</div>`,
       `<div class="navi" data-go="auto">${icon("sparkles",19)}自动提取</div>`,
       `<div class="navi" data-go="dingtalk">${icon("plug",19)}钉钉集成</div>`,
@@ -1569,10 +1582,10 @@ const AUTO_RULES = {
   absDate: [ /(\d{1,2})月(\d{1,2})[号日]/, /(\d{1,2})[号日]前?/ ],
   // 时间点：HH:MM / X点 / X点半
   time: [ /(\d{1,2}):(\d{2})/, /(\d{1,2})点(半)?(\d{0,2})?/ ],
-  // 动作关键词
-  actions: /(要|得|需要|记得|提醒我?|该|应该|必须|deadline|DDL|ddl|截止|抓紧|务必|尽快|下周|本周|明天|今天|号前|日前|点前|之前)/i,
+  // 动作关键词（覆盖微信/钉钉常见任务表述）
+  actions: /(要|得|需要|记得|提醒我?|该|应该|必须|deadline|DDL|ddl|截止|抓紧|务必|尽快|下周|本周|明天|今天|号前|日前|点前|之前|确认|回复|跟进|安排|准备|提交|上报|对接|商量|讨论|约|找|发|给|整理|梳理|发邮件|回复|确认下|过下|对一下|同步一下|loop|处理一下|办一下|弄一下|做一下|准备一下|赶完|搞定|完成)/i,
   // 排除关键词（这些段落不算待办）
-  exclude: /^(我感觉|我觉得|我想说|注意：|备注：|注释)/,
+  exclude: /^(我感觉|我觉得|我想说|注意：|备注：|注释|哈哈|呵呵|好的|收到|嗯嗯|对的)/,
 };
 
 function splitSentences(text){
@@ -1955,6 +1968,207 @@ function renderAutoExtract(){
     persist();
   });
 }
+
+/* ============================================================
+   外部消息汇总（微信/钉钉消息粘贴 + 规则提取 + Trae 回写通道）
+   ============================================================ */
+let externalMsgs = [];     // 来自 /data/tasks.json 的外部任务（Trae 写入）
+let externalTimer = null;
+
+async function fetchExternalTasks(){
+  try{
+    const res = await fetch("/data/tasks.json?t=" + Date.now(), { cache:"no-store" });
+    if(!res.ok) return;
+    const json = await res.json();
+    if(Array.isArray(json.tasks)) externalMsgs = json.tasks;
+    if(Array.isArray(json.pending)) externalMsgs = externalMsgs.concat(json.pending);
+  }catch(e){ /* 静默：可能没起服务 */ }
+}
+
+function startExternalPolling(){
+  if(externalTimer) return;
+  fetchExternalTasks();
+  externalTimer = setInterval(fetchExternalTasks, 60000);   // 每分钟拉一次
+}
+
+function renderExternal(){
+  const t = today();
+  const pending = externalMsgs.filter(x=>!x.accepted);
+  const accepted = externalMsgs.filter(x=>x.accepted);
+  const auto = data.__pendingAuto || [];
+  $("#screen").innerHTML = `<div class="header">
+    <div><h2>外部消息汇总</h2><p>从微信 / 钉钉复制消息后粘贴进来 · 规则提取任务 · Trae 会话可写入</p></div>
+    <div class="spacer"></div><span class="date-chip">${icon("send",14)} ${externalMsgs.length} 条外部</span>
+  </div>
+
+  <div class="auto-extract-banner" style="background:linear-gradient(135deg,var(--accent-muted),var(--surface-nested))">
+    <div class="ab-ic" style="color:var(--accent)">${icon("send",22)}</div>
+    <div class="ab-tx"><div class="ab-t">三路汇总</div>
+      <div class="ab-s" style="line-height:1.7">
+        ① <b>粘贴框提取</b>：从微信/钉钉网页版或客户端复制聊天记录 → 粘贴 → 规则引擎识别任务<br>
+        ② <b>Trae 会话提取</b>：在 Trae 对话里贴消息，让 Trae 用 LLM 语义提取，结果写入 <code style="background:var(--surface-card);padding:1px 5px;border-radius:4px;font-size:11px">/data/tasks.json</code>，本页自动拉取<br>
+        ③ <b>手动确认</b>：所有候选都需要你点 ✓ 才入待办清单
+      </div>
+    </div>
+  </div>
+
+  <div class="sec-title">① 粘贴框提取（推荐）</div>
+  <div class="ext-paste">
+    <textarea id="ext-input" placeholder="从微信/钉钉复制聊天记录后 Ctrl+V 粘贴到这里...
+
+支持识别的句子模式：
+  · 「明天下午3点和老板过方案」  → 任务 + 时间
+  · 「下周一前必须交报告」       → 任务 + 截止
+  · 「记得给小李发数据」         → 任务
+  · 「15号前回复客户」           → 任务 + 截止
+  · 「今晚8点要开会」            → 任务 + 时间
+"></textarea>
+    <div class="ext-actions">
+      <button class="btn" id="ext-extract">${icon("sparkles",15)} 提取任务</button>
+      <button class="btn ghost" id="ext-clear">${icon("trash",14)} 清空</button>
+      <div class="spacer"></div>
+      <span style="color:var(--text-tertiary);font-size:12.5px">无 LLM · 本地规则识别</span>
+    </div>
+    <div id="ext-result" class="ext-result"></div>
+  </div>
+
+  <div class="sec-title" style="margin-top:28px">② Trae 会话写入的外部任务
+    <span style="margin-left:auto;font-weight:500;color:var(--text-secondary);font-size:12px">数据源：/data/tasks.json · 每分钟拉取</span>
+    <button class="btn ghost" id="ext-refresh" style="margin-left:8px;padding:4px 10px;font-size:12px">${icon("refresh",13)} 立即刷新</button>
+  </div>
+  <div class="rec-grid" id="ext-trage-list">${pending.length ? pending.map((x,i)=>externalRecHTML(x,i,true)).join("")
+    : `<div class="empty"><span class="e">${icon("send",24)}</span>
+        <div>Trae 会话里贴消息后，让 Trae 提取并写入 <code>/data/tasks.json</code>，这里会自动显示。</div></div>`}</div>
+
+  ${accepted.length ? `<div class="sec-title" style="margin-top:24px">已确认的外部任务</div>
+    <div class="rec-grid">${accepted.map((x,i)=>externalRecHTML(x,i,false)).join("")}</div>` : ""}
+
+  ${auto.length ? `<div class="sec-title" style="margin-top:24px">本地规则引擎候选（来自灵感备忘）</div>
+    <div class="rec-grid">${auto.map((x,i)=>`<div class="rec">
+      <div class="top" style="padding-right:60px">
+        <div class="body" style="flex-direction:column;align-items:stretch;gap:6px">
+          <div><span class="rname">${esc(x.title)}</span><span class="auto-badge">本地规则</span></div>
+          ${x.remindAt?`<span class="rdate" style="margin-left:0;color:var(--module-3)">⏰ ${fmtTime(x.remindAt)}</span>`:""}
+          <div class="rnote">${esc(x.note||"")}</div>
+        </div>
+      </div>
+      <div class="acts" style="opacity:1">
+        <button class="pin-btn js-auto-accept" data-i="${i}" title="加入待办" style="color:var(--module-1)">${icon("check",15,2.4)}</button>
+        <button class="del js-auto-reject" data-i="${i}" title="忽略">${icon("trash",15)}</button>
+      </div>
+    </div>`).join("")}</div>` : ""}`;
+
+  $("#ext-extract").onclick = extractFromPaste;
+  $("#ext-clear").onclick = ()=>{ $("#ext-input").value=""; $("#ext-result").innerHTML=""; };
+  $("#ext-refresh").onclick = async ()=>{
+    await fetchExternalTasks();
+    renderExternal();
+    toast({type:"info", title:"已刷新", msg:`拉取到 ${externalMsgs.length} 条外部任务`, duration:3000});
+  };
+  $("#ext-trage-list").querySelectorAll(".js-ext-accept").forEach(el=>el.onclick=e=>{
+    e.stopPropagation();
+    const idx = +el.dataset.i;
+    const t = pending[idx]; if(!t) return;
+    const item = { id: Date.now(), title: t.title, priority: t.priority || "P1", done:false, note: t.source||t.note||"", remindAt: t.remindAt || "", auto:true };
+    (data.todo = data.todo||[]).unshift(item);
+    externalMsgs[idx].accepted = true;
+    persist();
+    renderExternal();
+    toast({type:"auto", title:"已加入待办", msg:`「${t.title}」已加入待办清单`, duration:4000});
+  });
+  $("#ext-trage-list").querySelectorAll(".js-ext-reject").forEach(el=>el.onclick=e=>{
+    e.stopPropagation();
+    const idx = +el.dataset.i;
+    externalMsgs.splice(idx,1);
+    renderExternal();
+  });
+  // 本地规则候选的按钮（与 renderAutoExtract 同款逻辑）
+  $("#screen").querySelectorAll(".js-auto-accept").forEach(el=>el.onclick=e=>{
+    e.stopPropagation();
+    const i = +el.dataset.i; const t = auto[i]; if(!t) return;
+    const item = { id: Date.now(), title: t.title, priority: t.priority || "P1", done:false, note: t.note || "", remindAt: t.remindAt || "", auto:true };
+    (data.todo = data.todo||[]).unshift(item);
+    data.__pendingAuto = auto.filter((_,j)=>j!==i);
+    persist();
+    renderExternal();
+    toast({type:"auto", title:"已加入待办", msg:`「${t.title}」已加入待办清单`, duration:4000});
+  });
+  $("#screen").querySelectorAll(".js-auto-reject").forEach(el=>el.onclick=e=>{
+    e.stopPropagation();
+    const i = +el.dataset.i;
+    data.__pendingAuto = auto.filter((_,j)=>j!==i);
+    persist();
+    renderExternal();
+  });
+}
+
+function externalRecHTML(x, i, isPending){
+  return `<div class="rec">
+    <div class="top" style="padding-right:60px">
+      <div class="body" style="flex-direction:column;align-items:stretch;gap:6px">
+        <div>
+          <span class="rname">${esc(x.title)}</span>
+          ${x.source === "trae" ? `<span class="auto-badge" style="background:var(--module-2);color:#fff">Trae LLM</span>` : `<span class="auto-badge">外部</span>`}
+          ${x.source && typeof x.source === "string" && x.source !== "trae" ? `<span class="badge" style="background:var(--surface-nested);color:var(--text-secondary);font-size:11px">${esc(x.source)}</span>` : ""}
+        </div>
+        ${x.remindAt?`<span class="rdate" style="margin-left:0;color:var(--module-3)">⏰ ${fmtTime(x.remindAt)}</span>`:""}
+        ${x.priority?`<span class="badge" style="background:var(--accent-muted);color:var(--accent);font-size:11px">${esc(x.priority)}</span>`:""}
+        ${x.note?`<div class="rnote">${esc(x.note)}</div>`:""}
+        ${x.rawText?`<div class="rnote" style="color:var(--text-tertiary);font-size:12px;border-left:2px solid var(--border);padding-left:8px;margin-top:4px">原文：${esc((x.rawText||"").slice(0,80))}${(x.rawText||"").length>80?"…":""}</div>`:""}
+      </div>
+    </div>
+    ${isPending ? `<div class="acts" style="opacity:1">
+      <button class="pin-btn js-ext-accept" data-i="${i}" title="加入待办" style="color:var(--module-1)">${icon("check",15,2.4)}</button>
+      <button class="del js-ext-reject" data-i="${i}" title="忽略">${icon("trash",15)}</button>
+    </div>` : ""}
+  </div>`;
+}
+
+function extractFromPaste(){
+  const text = $("#ext-input").value.trim();
+  if(!text){ toast({type:"info",title:"请先粘贴消息",msg:"从微信/钉钉复制后 Ctrl+V 粘贴",duration:3000}); return; }
+  const tasks = autoExtractTasks(text);
+  const result = $("#ext-result");
+  if(!tasks.length){
+    result.innerHTML = `<div class="empty" style="padding:20px"><span class="e">${icon("sparkles",24)}</span>
+      <div>未识别到任务候选。<br>规则识别需要句子中同时出现<b>时间</b>（明天/下周三/15号/14:30）和<b>动作</b>（要/得/记得/截止/确认/回复）关键词。<br><br>
+      <b>建议：</b>把这段消息直接贴到 Trae 会话里，让 Trae 用 LLM 帮你提取。</div></div>`;
+    return;
+  }
+  result.innerHTML = `<div class="sec-title" style="margin:8px 0">识别到 ${tasks.length} 条候选 · 点击 ✓ 加入待办</div>
+    <div class="rec-grid">${tasks.map((t,i)=>`<div class="rec">
+      <div class="top" style="padding-right:60px">
+        <div class="body" style="flex-direction:column;align-items:stretch;gap:6px">
+          <div><span class="rname">${esc(t.title)}</span><span class="auto-badge">规则识别</span></div>
+          ${t.remindAt?`<span class="rdate" style="margin-left:0;color:var(--module-3)">⏰ ${fmtTime(t.remindAt)}</span>`:""}
+          <div class="rnote">${esc(t.note||"")}</div>
+        </div>
+      </div>
+      <div class="acts" style="opacity:1">
+        <button class="pin-btn js-paste-accept" data-i="${i}" title="加入待办" style="color:var(--module-1)">${icon("check",15,2.4)}</button>
+        <button class="del js-paste-reject" data-i="${i}" title="忽略">${icon("trash",15)}</button>
+      </div>
+    </div>`).join("")}</div>`;
+  result.querySelectorAll(".js-paste-accept").forEach(el=>el.onclick=e=>{
+    e.stopPropagation();
+    const i = +el.dataset.i; const t = tasks[i]; if(!t) return;
+    const item = { id: Date.now(), title: t.title, priority: t.priority || "P1", done:false, note: t.note || "外部粘贴提取", remindAt: t.remindAt || "", auto:true };
+    (data.todo = data.todo||[]).unshift(item);
+    persist();
+    toast({type:"auto", title:"已加入待办", msg:`「${t.title}」已加入`, duration:4000});
+    // 从结果列表中移除
+    tasks.splice(i,1);
+    extractFromPaste();   // 重新渲染剩余的
+  });
+  result.querySelectorAll(".js-paste-reject").forEach(el=>el.onclick=e=>{
+    e.stopPropagation();
+    const i = +el.dataset.i;
+    tasks.splice(i,1);
+    extractFromPaste();
+  });
+}
+
+startExternalPolling();
 
 
 function esc(s){ return String(s??"").replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
