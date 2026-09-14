@@ -1977,18 +1977,20 @@ let externalTimer = null;
 
 async function fetchExternalTasks(){
   try{
-    const res = await fetch("/data/tasks.json?t=" + Date.now(), { cache:"no-store" });
-    if(!res.ok) return;
+    const res = await fetch("data/tasks.json?t=" + Date.now(), { cache:"no-store" });
+    if(!res.ok) return false;
     const json = await res.json();
     if(Array.isArray(json.tasks)) externalMsgs = json.tasks;
     if(Array.isArray(json.pending)) externalMsgs = externalMsgs.concat(json.pending);
-  }catch(e){ /* 静默：可能没起服务 */ }
+    return true;
+  }catch(e){ return false; }
 }
 
 function startExternalPolling(){
   if(externalTimer) return;
-  fetchExternalTasks();
-  externalTimer = setInterval(fetchExternalTasks, 60000);   // 每分钟拉一次
+  fetchExternalTasks().then(ok=>{
+    if(ok) externalTimer = setInterval(fetchExternalTasks, 60000);   // 存在 tasks.json 才轮询
+  });
 }
 
 function renderExternal(){
