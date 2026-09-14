@@ -67,101 +67,120 @@
     --sidebar-w: 258px;              /* 左侧栏宽度 */
   }
 
-  /* ===== 主题 2：暗夜墨蓝 Midnight —— 深色护眼，蓝灰主调 ===== */
+  /* ===== 主题 2：暗夜墨蓝 Midnight —— 终端风：等宽字体 + 网格背景 + 霓虹强调 ===== */
   [data-theme="midnight"] {
-    --page-bg: #0e1318;
-    --surface-card: #171d24;
-    --surface-nested: #1f2730;
-    --border: #242d38;
-    --border-input: #324050;
-    --text: #e4e9ef;
-    --text-secondary: #8b97a6;
-    --text-tertiary: #5a6676;
-    --accent: #6fa8dc;
-    --accent-muted: #1c2a3a;
-    --on-accent: #0e1318;
-    --module-1: #5fb88a;
-    --module-2: #6fa8dc;
-    --module-3: #e0b86a;
-    --module-4: #d98a6e;
-    --module-5: #a78bd9;
-    --danger: #e06a5f;
-    --danger-muted: #2a1816;
-    --drawer-bg: #0a0e12;
-    --drawer-bg-top: #12181f;
-    --drawer-text: #e4e9ef;
-    --drawer-text-mute: rgba(228,233,239,.5);
-    --drawer-hover: rgba(228,233,239,.06);
-    --drawer-active: rgba(111,168,220,.18);
-    --shadow-card: 0 1px 2px rgba(0,0,0,.3), 0 4px 16px rgba(0,0,0,.25);
-    --shadow-overlay: 0 10px 28px rgba(0,0,0,.5);
+    --page-bg: #0a0e14;
+    --surface-card: #11161d;
+    --surface-nested: #161c25;
+    --border: #1e2732;
+    --border-input: #2a3848;
+    --text: #c9d1d9;
+    --text-secondary: #6e7c8c;
+    --text-tertiary: #44505d;
+    --accent: #58a6ff;
+    --accent-muted: #122236;
+    --on-accent: #0a0e14;
+    --module-1: #3fb950;
+    --module-2: #58a6ff;
+    --module-3: #d29922;
+    --module-4: #f85149;
+    --module-5: #bc8cff;
+    --danger: #f85149;
+    --danger-muted: #2a1213;
+    --drawer-bg: #06090d;
+    --drawer-bg-top: #0c1117;
+    --drawer-text: #c9d1d9;
+    --drawer-text-mute: rgba(201,209,217,.45);
+    --drawer-hover: rgba(201,209,217,.05);
+    --drawer-active: rgba(88,166,255,.16);
+    --shadow-card: 0 1px 0 rgba(0,0,0,.4);
+    --shadow-overlay: 0 8px 24px rgba(0,0,0,.6);
+    --font: "JetBrains Mono", "Fira Code", "Cascadia Code", "SFMono-Regular", Consolas, "PingFang SC", monospace;
+    --radius-control: 4px;
+    --radius-tile: 6px;
+    --radius-card: 8px;
+    --radius-sheet: 10px;
+    --page-bg-extra: radial-gradient(circle at 20% 0%, rgba(88,166,255,.06), transparent 40%), linear-gradient(180deg,#0a0e14,#0a0e14);
   }
-  /* ===== 主题 3：极简黑白 Mono —— 黑白高对比，硬边直角 ===== */
+  [data-theme="midnight"] body { background-image: var(--page-bg-extra); }
+  [data-theme="midnight"] .rec { border-width:1px; }
+  [data-theme="midnight"] .rname { font-weight:600; letter-spacing:-.01em; }
+  /* ===== 主题 3：极简黑白 Mono —— 粗野主义：纯黑粗边 + 无阴影 + 大写标签 ===== */
   [data-theme="mono"] {
-    --page-bg: #ffffff;
+    --page-bg: #fafafa;
     --surface-card: #ffffff;
-    --surface-nested: #f5f5f5;
+    --surface-nested: #f0f0f0;
     --border: #000000;
     --border-input: #000000;
     --text: #000000;
-    --text-secondary: #555555;
-    --text-tertiary: #999999;
+    --text-secondary: #444444;
+    --text-tertiary: #888888;
     --accent: #000000;
-    --accent-muted: #f0f0f0;
+    --accent-muted: #eeeeee;
     --on-accent: #ffffff;
     --module-1: #000000;
-    --module-2: #333333;
-    --module-3: #666666;
-    --module-4: #444444;
-    --module-5: #222222;
+    --module-2: #000000;
+    --module-3: #000000;
+    --module-4: #000000;
+    --module-5: #000000;
     --danger: #000000;
-    --danger-muted: #f0f0f0;
+    --danger-muted: #eeeeee;
     --drawer-bg: #000000;
-    --drawer-bg-top: #111111;
+    --drawer-bg-top: #000000;
     --drawer-text: #ffffff;
     --drawer-text-mute: rgba(255,255,255,.5);
-    --drawer-hover: rgba(255,255,255,.08);
-    --drawer-active: rgba(255,255,255,.15);
-    --radius-control: 2px;
-    --radius-tile: 2px;
-    --radius-card: 2px;
-    --radius-sheet: 4px;
+    --drawer-hover: rgba(255,255,255,.06);
+    --drawer-active: rgba(255,255,255,.12);
+    --radius-control: 0px;
+    --radius-tile: 0px;
+    --radius-card: 0px;
+    --radius-sheet: 0px;
     --shadow-card: none;
-    --shadow-overlay: 0 8px 0 #000;
+    --shadow-overlay: 6px 6px 0 #000;
+    --font: "Helvetica Neue", Arial, "PingFang SC", sans-serif;
   }
-  /* ===== 主题 4：莫兰迪粉彩 Morandi —— 柔和低饱和，雾感 ===== */
+  [data-theme="mono"] .rec, [data-theme="mono"] .card, [data-theme="mono"] .panel, [data-theme="mono"] .modcard, [data-theme="mono"] .side-card, [data-theme="mono"] .mini { border-width:2px; }
+  [data-theme="mono"] .navi.active { border:2px solid #fff; }
+  [data-theme="mono"] h2, [data-theme="mono"] h1, [data-theme="mono"] .rname { font-weight:900; letter-spacing:-.02em; }
+  [data-theme="mono"] .badge, [data-theme="mono"] .auto-badge { text-transform:uppercase; letter-spacing:.05em; font-weight:800; }
+  /* ===== 主题 4：莫兰迪粉彩 Morandi —— 柔雾：大圆角 + 宽留白 + 渐变底 ===== */
   [data-theme="morandi"] {
-    --page-bg: #eae6e0;
-    --surface-card: #f5f2ec;
-    --surface-nested: #ede8e0;
-    --border: #d8d2c8;
-    --border-input: #c8c0b2;
-    --text: #4a4742;
-    --text-secondary: #8a857c;
-    --text-tertiary: #b3ada2;
-    --accent: #9a8fa0;
-    --accent-muted: #e2dde3;
-    --on-accent: #f5f2ec;
-    --module-1: #9ab0a0;
-    --module-2: #9aa6b8;
+    --page-bg: #e8e4dd;
+    --surface-card: #f7f4ee;
+    --surface-nested: #efe9e0;
+    --border: #d6cfc3;
+    --border-input: #c2b9a8;
+    --text: #545049;
+    --text-secondary: #948d82;
+    --text-tertiary: #bcb4a6;
+    --accent: #a99bb0;
+    --accent-muted: #e5dde6;
+    --on-accent: #f7f4ee;
+    --module-1: #9eb0a0;
+    --module-2: #9aa5b5;
     --module-3: #c4a87e;
     --module-4: #c29288;
     --module-5: #a89bb8;
     --danger: #c28a82;
     --danger-muted: #f0e0dc;
-    --drawer-bg: #4a4742;
-    --drawer-bg-top: #56534d;
-    --drawer-text: #f5f2ec;
-    --drawer-text-mute: rgba(245,242,236,.5);
-    --drawer-hover: rgba(245,242,236,.06);
-    --drawer-active: rgba(245,242,236,.12);
-    --radius-control: 10px;
-    --radius-tile: 16px;
-    --radius-card: 20px;
-    --radius-sheet: 28px;
-    --shadow-card: 0 2px 6px rgba(74,71,66,.06), 0 6px 20px rgba(74,71,66,.06);
-    --shadow-overlay: 0 12px 32px rgba(74,71,66,.15);
+    --drawer-bg: #524d46;
+    --drawer-bg-top: #5e5850;
+    --drawer-text: #f7f4ee;
+    --drawer-text-mute: rgba(247,244,238,.5);
+    --drawer-hover: rgba(247,244,238,.06);
+    --drawer-active: rgba(247,244,238,.12);
+    --radius-control: 12px;
+    --radius-tile: 18px;
+    --radius-card: 24px;
+    --radius-sheet: 32px;
+    --shadow-card: 0 2px 8px rgba(84,80,73,.05), 0 8px 24px rgba(84,80,73,.06);
+    --shadow-overlay: 0 16px 40px rgba(84,80,73,.18);
+    --font: -apple-system, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+    --page-bg-extra: radial-gradient(ellipse at top, #f0ebe2 0%, #e8e4dd 60%);
   }
+  [data-theme="morandi"] body { background-image: var(--page-bg-extra); }
+  [data-theme="morandi"] .rec { padding:18px 20px; }
+  [data-theme="morandi"] .rname { font-weight:600; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     background: var(--page-bg); color: var(--text); font-family: var(--font); font-size: 14px; line-height: 1.5;
@@ -342,6 +361,35 @@
   .search-box { position:relative; width: 240px; }
   .search-box svg { position:absolute; left:11px; top:50%; transform:translateY(-50%); color:var(--text-tertiary); pointer-events:none; }
   .search-box input { padding-left:34px; }
+  /* 待办排序 + 视图切换 */
+  .todo-ctrls { display:flex; gap:8px; align-items:center; }
+  .mini-seg { gap:4px; }
+  .mini-seg .opt { flex:0 0 auto; padding:6px 11px; font-size:12px; min-width:auto; border-radius:8px; }
+  .mini-seg .opt svg { vertical-align:-2px; }
+  /* 四象限视图 */
+  .quad-view { position:relative; padding: 10px 22px 22px 10px; }
+  .quad-axis-y { position:absolute; left:-2px; top:45%; writing-mode:vertical-rl; transform:rotate(180deg);
+    font-size:11px; color:var(--text-tertiary); letter-spacing:.1em; }
+  .quad-axis-x { text-align:center; font-size:11px; color:var(--text-tertiary); margin-top:8px; letter-spacing:.1em; }
+  .quad-grid { display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; gap:12px; min-height:420px; }
+  .q-col { background:var(--surface-card); border:1px solid var(--border); border-radius:var(--radius-card);
+    box-shadow:var(--shadow-card); padding:14px 16px; display:flex; flex-direction:column; min-height:0; }
+  .q-head { display:flex; align-items:center; justify-content:space-between; padding-left:10px; border-left:4px solid; padding-bottom:10px; margin-bottom:10px; border-bottom:1px solid var(--border); }
+  .qh-l { font-size:13px; font-weight:800; }
+  .qh-n { font-size:12px; color:var(--text-tertiary); font-weight:600; }
+  .q-items { flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:6px; }
+  .q-item { display:flex; align-items:center; gap:9px; padding:8px 10px; border-radius:var(--radius-tile);
+    background:var(--surface-nested); cursor:pointer; transition:background .12s; }
+  .q-item:hover { background:var(--accent-muted); }
+  .q-item.done .qi-t { text-decoration:line-through; color:var(--text-tertiary); }
+  .qi-chk { width:18px; height:18px; border-radius:5px; border:1.5px solid var(--border-input); flex:0 0 auto;
+    display:grid; place-items:center; cursor:pointer; background:var(--surface-card); color:var(--on-accent); }
+  .qi-chk.on { background:var(--module-1); border-color:var(--module-1); }
+  .qi-body { flex:1; min-width:0; }
+  .qi-t { font-size:13px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .qi-r { font-size:11px; color:var(--text-tertiary); margin-top:2px; display:flex; align-items:center; gap:3px; }
+  .qi-iu { font-size:10.5px; color:var(--text-tertiary); flex:0 0 auto; font-weight:700; }
+  .q-empty { text-align:center; color:var(--text-tertiary); font-size:12px; padding:24px 0; }
 
   /* module hero header (per-type summary) */
   .hero { display:flex; align-items:center; gap: 13px; padding: 12px 16px; border-radius: var(--radius-tile);
@@ -432,6 +480,9 @@
   .remind-badge.today { font-weight:800; }
   @keyframes pulse-red { 0%,100% { box-shadow:0 0 0 0 rgba(194,93,79,.35); } 50% { box-shadow:0 0 0 5px rgba(194,93,79,0); } }
   .badge .dot { width:6px; height:6px; border-radius:50%; background:currentColor; }
+  .iu-badge { display:inline-flex; align-items:center; padding:2px 8px; border-radius:999px; font-size:10.5px;
+    font-weight:800; background:var(--surface-nested); color:var(--text-secondary); border:1px solid var(--border);
+    letter-spacing:.02em; font-family:var(--font); }
   .rec .acts { position:absolute; top:50%; right:8px; transform:translateY(-50%); display:flex; gap:1px; opacity:0; transition: opacity .15s; background:var(--surface-card); }
   .rec:hover .acts { opacity:1; }
   .rec .acts button { border:none; background:transparent; color:var(--text-tertiary); cursor:pointer;
@@ -471,6 +522,25 @@
   .modal .sub { color:var(--text-secondary); font-size:13px; margin:5px 0 18px; }
   .field { margin-bottom:14px; }
   .field label { display:block; color:var(--text-secondary); font-size:13px; margin-bottom:6px; }
+  /* 四象限选择器 */
+  .quad-picker { display:grid; grid-template-columns: 22px 1fr; grid-template-rows: 1fr 18px; gap:4px; align-items:center; }
+  .qp-y { writing-mode:vertical-rl; text-orientation:mixed; font-size:10px; color:var(--text-tertiary); text-align:center; transform:rotate(180deg); letter-spacing:.1em; }
+  .qp-x { grid-column:2; font-size:10px; color:var(--text-tertiary); text-align:center; letter-spacing:.1em; }
+  .qp-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:3px; grid-column:2; grid-row:1; }
+  .qp-cell { aspect-ratio:1; border-radius:5px; cursor:pointer; transition:transform .12s, box-shadow .12s; border:1.5px solid transparent; }
+  .qp-cell:hover { transform:scale(1.12); z-index:2; }
+  .qp-cell.q1 { background:#fbeaea; }
+  .qp-cell.q2 { background:#e8f0f6; }
+  .qp-cell.q3 { background:#fbf3e2; }
+  .qp-cell.q4 { background:#f0eee9; }
+  .qp-cell.on { box-shadow:0 0 0 2.5px var(--accent), 0 2px 8px rgba(0,0,0,.18); transform:scale(1.12); border-color:var(--accent); }
+  .qp-legend { display:flex; flex-wrap:wrap; gap:10px; margin-top:8px; }
+  .qp-legend .ql { font-size:11px; color:var(--text-secondary); display:inline-flex; align-items:center; gap:5px; }
+  .qp-legend .ql::before { content:""; width:10px; height:10px; border-radius:3px; }
+  .qp-legend .ql.q1::before { background:#fbeaea; }
+  .qp-legend .ql.q2::before { background:#e8f0f6; }
+  .qp-legend .ql.q3::before { background:#fbf3e2; }
+  .qp-legend .ql.q4::before { background:#f0eee9; }
   .frow { display:flex; gap:12px; } .frow .field { flex:1; }
   .seg { display:flex; gap:8px; flex-wrap:wrap; }
   .seg .opt { flex:1; min-width:64px; text-align:center; padding:10px; border-radius:11px; border:1px solid var(--border-input);
@@ -944,6 +1014,8 @@ const store = {
 let data = store.load();
 let view = "home";
 let searchQ = "";
+let todoSort = "default";   // default | time | importance | urgency | score
+let todoView = "list";      // list | quadrant
 let pomo = { running:false, remain:25*60, total:25*60 };   // 番茄钟状态（内存态，跨渲染保留）
 let clockTimer = null;                                       // 全局秒级心跳（时钟 + 番茄钟）
 function persist(){ store.save(); render(); }
@@ -1268,18 +1340,50 @@ function renderModule(key){
     head=headHero(m, `${all.length}`, `条记录 · 今日 ${todayN} 条`, null);
   }
 
+  // 待办排序
+  if(m.type==="todo"){
+    const arr=[...it];
+    if(todoSort==="time") arr.sort((a,b)=>{ const ta=a.remindAt?new Date(a.remindAt).getTime():Infinity; const tb=b.remindAt?new Date(b.remindAt).getTime():Infinity; return ta-tb; });
+    else if(todoSort==="importance") arr.sort((a,b)=>(b.importance||3)-(a.importance||3));
+    else if(todoSort==="urgency") arr.sort((a,b)=>(b.urgency||3)-(a.urgency||3));
+    else if(todoSort==="score") arr.sort((a,b)=>((b.importance||3)*(b.urgency||3))-((a.importance||3)*(a.urgency||3)));
+    it=arr;
+  }
+
   const body = it.length ? it.map(x=>recHTML(m,x)).join("")
     : `<div class="empty"><span class="e">${icon(m.icon,28)}</span><div>${q?'没有匹配的记录':'还没有记录，点右上角「新建」添加第一条吧'}</div></div>`;
+
+  // 待办控件：排序 + 视图切换
+  let todoCtrls="";
+  if(m.type==="todo"){
+    const sortOpts=[{k:"default",l:"默认"},{k:"time",l:"按时间"},{k:"importance",l:"按重要性"},{k:"urgency",l:"按紧急度"},{k:"score",l:"按综合分"}];
+    todoCtrls=`<div class="todo-ctrls">
+      <div class="seg mini-seg" id="sort-seg">${sortOpts.map(o=>`<div class="opt ${todoSort===o.k?'on':''}" data-v="${o.k}">${o.l}</div>`).join("")}</div>
+      <div class="seg mini-seg" id="view-seg">
+        <div class="opt ${todoView==='list'?'on':''}" data-v="list">${icon("list",14)} 列表</div>
+        <div class="opt ${todoView==='quadrant'?'on':''}" data-v="quadrant">${icon("grid",14)} 四象限</div>
+      </div>
+    </div>`;
+  }
+
+  // 四象限视图
+  let mainBody="";
+  if(m.type==="todo" && todoView==="quadrant"){
+    mainBody = renderQuadrantView(it);
+  } else {
+    mainBody = `<div class="sec-title">全部记录 <span id="rec-count" style="margin-left:auto;font-weight:500;color:var(--text-secondary);font-size:12px">${it.length} 条</span></div>
+        <div class="rec-grid">${body}</div>`;
+  }
 
   $("#screen").innerHTML=`<div class="header"><div><h2>${m.name}</h2><p>${m.desc}</p></div><div class="spacer"></div><span class="date-chip">${icon("calendar",14)} ${dateStr()}</span></div>
     <div class="toolbar">
       <div class="search-box">${icon("search",15,2.2)}<input id="search" placeholder="搜索…" value="${attr(searchQ)}"/></div>
+      ${todoCtrls}
       <div class="spacer"></div><button class="btn" id="btn-new">${icon("plus",16,2.2)}新建</button></div>
     ${head}
     <div class="mod-layout">
       <div class="mod-main">
-        <div class="sec-title">全部记录 <span id="rec-count" style="margin-left:auto;font-weight:500;color:var(--text-secondary);font-size:12px">${it.length} 条</span></div>
-        <div class="rec-grid">${body}</div>
+        ${mainBody}
       </div>
       <aside class="mod-side">${sideStats(m,all)}</aside>
     </div>`;
@@ -1290,6 +1394,9 @@ function renderModule(key){
   s.addEventListener("compositionend",()=>{ composing=false; refresh(); });
   s.addEventListener("input",()=>{ if(!composing) refresh(); });
   $("#btn-new").onclick=()=>openEditor(key,null);
+  // 待办排序 + 视图切换
+  const sortSeg=$("#sort-seg"); if(sortSeg) sortSeg.querySelectorAll(".opt").forEach(o=>o.onclick=()=>{ todoSort=o.dataset.v; renderModule(key); });
+  const viewSeg=$("#view-seg"); if(viewSeg) viewSeg.querySelectorAll(".opt").forEach(o=>o.onclick=()=>{ todoView=o.dataset.v; renderModule(key); });
   wireModule(key);
 }
 
@@ -1390,6 +1497,38 @@ function headHero(m, big, label){
   return `<div class="hero">${inner}</div>`;
 }
 
+/* 四象限视图：重要度(X) × 紧急度(Y) */
+function renderQuadrantView(items){
+  const qs={q1:[],q2:[],q3:[],q4:[]};
+  items.forEach(x=>{
+    const imp=x.importance||3, urg=x.urgency||3;
+    const q = imp>=3&&urg>=3?'q1':imp>=3&&urg<3?'q2':imp<3&&urg>=3?'q3':'q4';
+    qs[q].push(x);
+  });
+  const qCard=(q,label,color)=>`<div class="q-col">
+    <div class="q-head" style="border-left-color:${color}"><span class="qh-l">${label}</span><span class="qh-n">${qs[q].length}</span></div>
+    <div class="q-items">${qs[q].length?qs[q].map(x=>{
+      const urg=x.urgency&&remindUrgency(x.remindAt)?remindUrgency(x.remindAt):null;
+      return `<div class="q-item ${x.done?'done':''}" data-edit="${x.id}">
+        <div class="qi-chk js-chk ${x.done?'on':''}" data-id="${x.id}">${x.done?icon("check",11,2):''}</div>
+        <div class="qi-body"><div class="qi-t">${esc(x.title)}</div>
+          ${x.remindAt?`<div class="qi-r">${icon("bell",10)} ${fmtTime(x.remindAt)}</div>`:''}</div>
+        <div class="qi-iu" title="重要${x.importance||3}/紧急${x.urgency||3}">I${x.importance||3}·U${x.urgency||3}</div>
+      </div>`;
+    }).join(""):`<div class="q-empty">暂无</div>`}</div>
+  </div>`;
+  return `<div class="quad-view">
+    <div class="quad-axis-y">紧急度 ↑</div>
+    <div class="quad-axis-x">重要度 →</div>
+    <div class="quad-grid">
+      ${qCard('q2','Q2 · 重要不紧急','#5f7a99')}
+      ${qCard('q1','Q1 · 重要紧急','#c25d4f')}
+      ${qCard('q4','Q4 · 不重要不紧急','#9a958a')}
+      ${qCard('q3','Q3 · 不重要紧急','#bd8a4e')}
+    </div>
+  </div>`;
+}
+
 function recHTML(m,x){
   const pin=`<button class="pin-btn js-pin ${x.pinned?'on':''}" data-id="${x.id}" title="置顶">${icon("star",15)}</button>`;
   const del=`<button class="del js-del" data-id="${x.id}" title="删除">${icon("trash",15)}</button>`;
@@ -1429,6 +1568,7 @@ function recHTML(m,x){
       <div class="body" data-edit="${x.id}"><span class="rname ${x.done?'done':''}">${esc(x.title)}</span>
       ${x.auto?`<span class="auto-badge" title="自动提取">自动</span>`:''}
       ${p?`<span class="badge" style="background:${p.color};color:${p.text}"><span class="dot"></span>${p.label}</span>`:''}
+      ${x.importance&&x.urgency?`<span class="iu-badge" title="重要度 ${x.importance}/5 · 紧急度 ${x.urgency}/5">I${x.importance}·U${x.urgency}</span>`:''}
       ${remindBadge}
       ${x.note?`<span class="rdate" style="margin-left:0;color:var(--text-tertiary)">${esc(x.note).slice(0,40)}</span>`:''}${customBlock}</div></div></div>`; }
   if(m.type==="checkin"){ const on=!!(x.log&&x.log[today()]); const st=streak(x.log);
@@ -1475,8 +1615,24 @@ function openEditor(key,item){
   const m=modOf(key); const editing=!!item; const d=item||newItem(m);
   let fields="";
   if(m.type==="todo"){
+    const imp=d.importance||3, urg=d.urgency||3;
     fields=`<div class="field"><label>任务</label><input id="f-title" value="${attr(d.title)}" placeholder="要做什么？"/></div>
       <div class="field"><label>优先级</label><div class="seg" id="f-prio">${(m.priorities||[]).map(p=>`<div class="opt ${p.key===d.priority?'on':''}" data-v="${p.key}">${p.label}</div>`).join("")}</div></div>
+      <div class="field"><label>四象限定位（点击格子）</label>
+        <div class="quad-picker" id="quadPicker">
+          <div class="qp-y">紧急 →</div>
+          <div class="qp-grid">
+            ${[5,4,3,2,1].map(r=>[1,2,3,4,5].map(c=>{
+              const q = c>=3&&r>=3?'q1':c>=3&&r<3?'q2':c<3&&r>=3?'q3':'q4';
+              const on = imp===c&&urg===r?'on':'';
+              return `<div class="qp-cell ${q} ${on}" data-imp="${c}" data-urg="${r}" title="重要${c} 紧急${r}"></div>`;
+            }).join("")).join("")}
+          </div>
+          <div class="qp-x">重要 →</div>
+        </div>
+        <input type="hidden" id="f-imp" value="${imp}"/><input type="hidden" id="f-urg" value="${urg}"/>
+        <div class="qp-legend"><span class="ql q1">Q1 重要紧急</span><span class="ql q2">Q2 重要不紧急</span><span class="ql q3">Q3 不重要紧急</span><span class="ql q4">Q4 不重要不紧急</span></div>
+      </div>
       <div class="field"><label>提醒时间（可选）</label>
         <input id="f-remind" type="datetime-local" value="${attr((d.remindAt||'').slice(0,16))}" style="flex:1"/>
         <p class="sub" style="margin:5px 0 0;font-size:11.5px">到点会同时触发浏览器通知 + 应用内 toast（页面需保持打开）</p></div>
@@ -1525,6 +1681,18 @@ function openEditor(key,item){
   overlay.onclick=e=>{ if(e.target===overlay) close(); };
   overlay.querySelector("#m-cancel").onclick=close;
   overlay.querySelectorAll(".seg").forEach(seg=>seg.querySelectorAll(".opt").forEach(o=>o.onclick=()=>{ seg.querySelectorAll(".opt").forEach(x=>x.classList.remove("on")); o.classList.add("on"); }));
+  // 四象限选择器
+  const qp = overlay.querySelector("#quadPicker");
+  if(qp){
+    qp.querySelectorAll(".qp-cell").forEach(cell=>{
+      cell.onclick = ()=>{
+        qp.querySelectorAll(".qp-cell").forEach(c=>c.classList.remove("on"));
+        cell.classList.add("on");
+        overlay.querySelector("#f-imp").value = cell.dataset.imp;
+        overlay.querySelector("#f-urg").value = cell.dataset.urg;
+      };
+    });
+  }
   if(editing) overlay.querySelector("#m-del").onclick=()=>{ close(); confirmDelete(key,d.id); };
   overlay.querySelector("#m-save").onclick=()=>{
     const val=id=>{ const el=overlay.querySelector(id); return el?el.value:undefined; };
@@ -1532,6 +1700,8 @@ function openEditor(key,item){
     d.title=(val("#f-title")||"").trim()||"未命名";
     d.layout=seg("#f-layout")||'default';
     if(m.type==="todo"){ d.priority=seg("#f-prio")||d.priority; d.note=(val("#f-note")||"").trim();
+      d.importance = Math.max(1,Math.min(5,+val("#f-imp")||3));
+      d.urgency = Math.max(1,Math.min(5,+val("#f-urg")||3));
       const r=val("#f-remind"); d.remindAt = r ? `${r}:00` : ""; }
     else if(m.type==="progress"){ d.current=Math.max(0,+val("#f-cur")||0); d.target=Math.max(1,+val("#f-tgt")||1); d.unit=(val("#f-unit")||"").trim(); d.note=(val("#f-note")||"").trim(); }
     else if(m.type==="finance"){ d.type=seg("#f-ftype")||"expense"; d.amount=Math.max(0,+val("#f-amt")||0); d.category=seg("#f-cat")||(m.categories&&m.categories[0])||"其他"; d.date=val("#f-date"); }
@@ -1552,7 +1722,7 @@ function openEditor(key,item){
 }
 
 function newItem(m){ const base={id:Date.now()}; let item;
-  if(m.type==="todo") item={...base,title:"",priority:(m.priorities&&m.priorities[1]?m.priorities[1].key:"P1"),done:false,doneDate:"",note:"",remindAt:"",auto:false};
+  if(m.type==="todo") item={...base,title:"",priority:(m.priorities&&m.priorities[1]?m.priorities[1].key:"P1"),done:false,doneDate:"",note:"",remindAt:"",auto:false,importance:3,urgency:3};
   else if(m.type==="checkin") item={...base,title:"",log:{}};
   else if(m.type==="progress") item={...base,title:"",current:0,target:(m.unit==="页"?100:20),unit:m.unit||"",note:""};
   else if(m.type==="finance") item={...base,title:"",type:"expense",amount:"",category:(m.categories&&m.categories[0])||"其他",date:isoToday()};
@@ -2166,7 +2336,7 @@ function renderAutoExtract(){
   $("#screen").querySelectorAll(".js-auto-accept").forEach(el=>el.onclick=e=>{
     e.stopPropagation();
     const i = +el.dataset.i; const t = pending[i]; if(!t) return;
-    const item = { id: Date.now(), title: t.title, priority: t.priority || "P1", done:false, note: t.note || "", remindAt: t.remindAt || "", auto:true };
+    const item = { id: Date.now(), title: t.title, priority: t.priority || "P1", done:false, note: t.note || "", remindAt: t.remindAt || "", auto:true, importance:t.importance||3, urgency:t.urgency||3 };
     (data.todo = data.todo||[]).unshift(item);
     data.__pendingAuto = pending.filter((_,j)=>j!==i);
     persist();
@@ -2278,7 +2448,7 @@ function renderExternal(){
     e.stopPropagation();
     const idx = +el.dataset.i;
     const t = pending[idx]; if(!t) return;
-    const item = { id: Date.now(), title: t.title, priority: t.priority || "P1", done:false, note: t.source||t.note||"", remindAt: t.remindAt || "", auto:true };
+    const item = { id: Date.now(), title: t.title, priority: t.priority || "P1", done:false, note: t.source||t.note||"", remindAt: t.remindAt || "", auto:true, importance:t.importance||3, urgency:t.urgency||3 };
     (data.todo = data.todo||[]).unshift(item);
     externalMsgs[idx].accepted = true;
     persist();
@@ -2295,7 +2465,7 @@ function renderExternal(){
   $("#screen").querySelectorAll(".js-auto-accept").forEach(el=>el.onclick=e=>{
     e.stopPropagation();
     const i = +el.dataset.i; const t = auto[i]; if(!t) return;
-    const item = { id: Date.now(), title: t.title, priority: t.priority || "P1", done:false, note: t.note || "", remindAt: t.remindAt || "", auto:true };
+    const item = { id: Date.now(), title: t.title, priority: t.priority || "P1", done:false, note: t.note || "", remindAt: t.remindAt || "", auto:true, importance:t.importance||3, urgency:t.urgency||3 };
     (data.todo = data.todo||[]).unshift(item);
     data.__pendingAuto = auto.filter((_,j)=>j!==i);
     persist();
@@ -2549,7 +2719,7 @@ function renderLLMResult(tasks, sourceLabel, sourceTag){
   result.querySelectorAll(".js-llm-accept").forEach(el=>el.onclick=e=>{
     e.stopPropagation();
     const i = +el.dataset.i; const t = tasks[i]; if(!t) return;
-    const item = { id: Date.now(), title: t.title || "未命名任务", priority: t.priority || "P1", done:false, note: t.note || "外部消息提取", remindAt: t.remindAt || "", auto:true, source: sourceTag };
+    const item = { id: Date.now(), title: t.title || "未命名任务", priority: t.priority || "P1", done:false, note: t.note || "外部消息提取", remindAt: t.remindAt || "", auto:true, source: sourceTag, importance:t.importance||3, urgency:t.urgency||3 };
     (data.todo = data.todo||[]).unshift(item);
     persist();
     toast({type:"auto", title:"已加入待办", msg:`「${t.title}」已加入待办清单`, duration:4000});
