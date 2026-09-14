@@ -304,8 +304,9 @@
 
   /* record list — 行式列表 */
   .rec-grid { display:flex; flex-direction:column; gap:9px; }
-  .rec { position:relative; background:var(--surface-card); border:1px solid var(--border); border-radius:var(--radius-tile); box-shadow:var(--shadow-card); padding:14px 16px; transition: border-color .12s, box-shadow .15s; }
-  .rec:hover { border-color: var(--border-input); box-shadow: var(--shadow-overlay); }
+  .rec { position:relative; background:var(--surface-card); border:1px solid var(--border); border-radius:var(--radius-tile); box-shadow:var(--shadow-card); padding:14px 16px; transition: border-color .15s, box-shadow .18s, transform .15s; }
+  .rec:hover { border-color: color-mix(in srgb, var(--accent) 40%, var(--border)); box-shadow: var(--shadow-overlay); transform: translateY(-1px); }
+  .rec[data-urgent="overdue"] { border-color:#e8b8b0; box-shadow:0 0 0 3px rgba(194,93,79,.08); }
   .rec .top { display:flex; align-items:center; gap:12px; }
   .rec .chk { flex:0 0 auto; width:23px; height:23px; border-radius:7px; border:1.6px solid var(--border-input); display:grid; place-items:center;
     cursor:pointer; background:var(--surface-card); color:var(--on-accent); transition: all .15s; }
@@ -318,6 +319,12 @@
   .rec .rnote { flex:1 0 100%; color:var(--text-secondary); font-size:12.5px; margin-top:5px; white-space:pre-wrap; line-height:1.5;
     overflow:hidden; text-overflow:ellipsis; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
   .badge { display:inline-flex; align-items:center; gap:5px; padding:2px 9px; border-radius:999px; font-size:11.5px; font-weight:700; }
+  .remind-badge { display:inline-flex; align-items:center; gap:5px; padding:4px 11px; border-radius:999px;
+    font-size:12.5px; font-weight:700; border:1px solid transparent; white-space:nowrap;
+    box-shadow:0 1px 4px rgba(0,0,0,.06); }
+  .remind-badge.overdue { animation: pulse-red 1.6s ease-in-out infinite; }
+  .remind-badge.today { font-weight:800; }
+  @keyframes pulse-red { 0%,100% { box-shadow:0 0 0 0 rgba(194,93,79,.35); } 50% { box-shadow:0 0 0 5px rgba(194,93,79,0); } }
   .badge .dot { width:6px; height:6px; border-radius:50%; background:currentColor; }
   .rec .acts { position:absolute; top:50%; right:8px; transform:translateY(-50%); display:flex; gap:1px; opacity:0; transition: opacity .15s; background:var(--surface-card); }
   .rec:hover .acts { opacity:1; }
@@ -555,13 +562,19 @@
   .cal-cell.today .cd { color:var(--accent); }
   .cal-cell .cev { font-size:11px; padding:2px 6px; border-radius:6px; background:var(--surface-nested);
     color:var(--text-secondary); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; cursor:pointer; transition:all .12s; border:1px solid transparent; }
-  .cal-cell .cev.todo { background:#eef3ec; color:#4a6a3f; border-color:#d6e2cf; }
-  .cal-cell .cev.goal { background:#edf1f5; color:#3a5a7c; border-color:#cfdae8; }
-  .cal-cell .cev.checkin { background:#f6efe8; color:#8a5a3a; border-color:#e8d4c4; }
-  .cal-cell .cev.note { background:#f1eef4; color:#5d5180; border-color:#dcd5e6; }
-  .cal-cell .cev.review { background:#f6ece9; color:#a04a3c; border-color:#e8c9c0; }
+  .cal-cell .cev.todo { background:#eef3ec; color:#4a6a3f; border-color:#d6e2cf; border-left:3px solid #7a9a5e; }
+  .cal-cell .cev.todo.pri-P0 { background:#fbecea; color:#a83a2c; border-color:#f0c4be; border-left-color:#c25d4f; }
+  .cal-cell .cev.todo.pri-P1 { background:#f6efe6; color:#8a6228; border-color:#e8d4b8; border-left-color:#bd8a4e; }
+  .cal-cell .cev.todo.pri-P2 { background:#edf1f5; color:#3a5a7c; border-color:#cfdae8; border-left-color:#5f7a99; }
+  .cal-cell .cev.goal { background:#edf1f5; color:#3a5a7c; border-color:#cfdae8; border-left:3px solid #5f7a99; }
+  .cal-cell .cev.checkin { background:#f6efe8; color:#8a5a3a; border-color:#e8d4c4; border-left:3px solid #a07a5a; }
+  .cal-cell .cev.note { background:#f1eef4; color:#5d5180; border-color:#dcd5e6; border-left:3px solid #7a6a9a; }
+  .cal-cell .cev.review { background:#f6ece9; color:#a04a3c; border-color:#e8c9c0; border-left:3px solid #c25d4f; }
   .cal-cell .cev:hover { transform:translateX(2px); }
   .cal-cell .cadd { margin-top:auto; font-size:11px; color:var(--text-tertiary); display:flex; align-items:center; gap:4px; }
+  .cal-legend { display:flex; flex-wrap:wrap; gap:14px; padding:10px 14px 4px; border-top:1px solid var(--border); margin-top:4px; }
+  .cal-legend .lg { display:inline-flex; align-items:center; gap:5px; font-size:11.5px; color:var(--text-secondary); }
+  .cal-legend .lg i { width:10px; height:10px; border-radius:3px; display:inline-block; }
   .cal-side { display:flex; flex-direction:column; gap:12px; }
   .cal-day-list .dl-item { padding:11px 13px; border-radius:var(--radius-tile); background:var(--surface-card);
     border:1px solid var(--border); margin-bottom:8px; }
@@ -1293,12 +1306,15 @@ function recHTML(m,x){
 
   // default layout
   if(m.type==="todo"){ const p=(m.priorities||[]).find(p=>p.key===x.priority);
-    return `<div class="rec ${layoutCls}">${acts}<div class="top" style="padding-right:60px"><div class="chk js-chk ${x.done?'on':''}" data-id="${x.id}">${chkMark}</div>
+    const urg = x.remindAt && !x.done ? remindUrgency(x.remindAt) : null;
+    const remindBadge = remindBadgeHTML(x.remindAt);
+    const urgAttr = urg && urg.level==="overdue" ? ` data-urgent="overdue"` : "";
+    return `<div class="rec ${layoutCls}"${urgAttr}>${acts}<div class="top" style="padding-right:60px"><div class="chk js-chk ${x.done?'on':''}" data-id="${x.id}">${chkMark}</div>
       ${thumb}
       <div class="body" data-edit="${x.id}"><span class="rname ${x.done?'done':''}">${esc(x.title)}</span>
       ${x.auto?`<span class="auto-badge" title="自动提取">自动</span>`:''}
       ${p?`<span class="badge" style="background:${p.color};color:${p.text}"><span class="dot"></span>${p.label}</span>`:''}
-      ${x.remindAt?`<span class="badge" style="background:var(--accent-muted);color:var(--module-3)"><span class="dot"></span>${icon("bell",11,2)} ${fmtTime(x.remindAt)}</span>`:''}
+      ${remindBadge}
       ${x.note?`<span class="rdate" style="margin-left:0;color:var(--text-tertiary)">${esc(x.note).slice(0,40)}</span>`:''}${customBlock}</div></div></div>`; }
   if(m.type==="checkin"){ const on=!!(x.log&&x.log[today()]); const st=streak(x.log);
     return `<div class="rec ${layoutCls}">${acts}<div class="top" style="padding-right:60px"><div class="chk js-chk ${on?'on':''}" data-id="${x.id}">${chkMark}</div>
@@ -1499,6 +1515,29 @@ function todayTs(){ return new Date(`${isoToday()}T00:00:00`).getTime(); }
 function parseRemindAt(str){ if(!str) return null; const t = new Date(str); return isNaN(t.getTime()) ? null : t; }
 function fmtTime(dateStr){ if(!dateStr) return ""; const d = new Date(dateStr); if(isNaN(d.getTime())) return "";
   return `${pad2(d.getMonth()+1)}-${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`; }
+
+/* 提醒紧急度：返回 {level:"overdue"|"today"|"soon"|"later", label} */
+function remindUrgency(remindAt){
+  if(!remindAt) return null;
+  const t = new Date(remindAt);
+  if(isNaN(t.getTime())) return null;
+  const now = new Date();
+  const diff = t.getTime() - now.getTime();
+  if(diff < 0) return { level:"overdue", label:"已逾期" };
+  if(diff < 60*60*1000) return { level:"soon", label:`${Math.ceil(diff/60000)}分钟后` };
+  if(t.toDateString() === now.toDateString()) return { level:"today", label:`今天 ${pad2(t.getHours())}:${pad2(t.getMinutes())}` };
+  if(diff < 2*24*60*60*1000) return { level:"soon", label:fmtTime(remindAt) };
+  return { level:"later", label:fmtTime(remindAt) };
+}
+/* 统一渲染提醒徽章 HTML（含紧急度配色） */
+function remindBadgeHTML(remindAt){
+  if(!remindAt) return "";
+  const urg = remindUrgency(remindAt);
+  if(!urg) return `<span class="remind-badge later" style="background:var(--surface-nested);color:var(--text-tertiary)">${icon("bell",12,2)} ${fmtTime(remindAt)}</span>`;
+  const colors = { overdue:{c:"#c25d4f",b:"#f6ece9"}, today:{c:"#bd8a4e",b:"#f6efe6"}, soon:{c:"#5f7a99",b:"#edf1f5"}, later:{c:"#8c877c",b:"#f7f6f1"} };
+  const k = colors[urg.level];
+  return `<span class="remind-badge ${urg.level}" style="background:${k.b};color:${k.c};border-color:${k.c}33">${icon("bell",12,2.2)} ${urg.label}</span>`;
+}
 function addDaysISO(iso, n){ const d = new Date(`${iso}T00:00:00`); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10); }
 function isoToDate(iso){ return new Date(`${iso}T00:00:00`); }
 function monthLabel(d){ return `${d.getFullYear()}年${d.getMonth()+1}月`; }
@@ -1737,25 +1776,48 @@ async function pushToDingTalk(){
   const payload = {
     msgtype:"markdown",
     markdown:{ title:`待办清单 · ${dateStr()}`, text:md },
-    at:{ isAtAll: cfg.autoPush === false ? false : false }
+    at:{ isAtAll: false }
   };
-  try{
-    const res = await fetch(cfg.webhook, {
+  const body = JSON.stringify(payload);
+
+  // 尝试 1：直接请求
+  async function directPush(){
+    const res = await fetch(cfg.webhook, { method:"POST", headers:{ "Content-Type":"application/json" }, body });
+    const json = await res.json();
+    return json;
+  }
+  // 尝试 2：走 CORS 代理（allorigins 支持 POST 透传）
+  async function proxyPush(){
+    const proxyUrl = "https://api.allorigins.win/post?url=" + encodeURIComponent(cfg.webhook);
+    const res = await fetch(proxyUrl, {
       method:"POST",
       headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify(payload)
+      body: body
     });
-    const json = await res.json();
-    if(json.errcode === 0 || json.errcode === undefined){
-      saveDingConfig({ lastPush: new Date().toISOString() });
-      toast({type:"ding", title:"推送成功", msg:`已把 ${data.todo.filter(x=>!x.done).length} 条待办推送到钉钉群`, duration:5000});
-      return true;
-    } else {
-      toast({type:"ding", title:"推送失败", msg:`钉钉返回：${json.errmsg || JSON.stringify(json)}`, duration:8000});
+    const text = await res.text();
+    // allorigins 返回 { contents: "钉钉的json字符串" }
+    try{
+      const outer = JSON.parse(text);
+      if(outer.contents){ try{ return JSON.parse(outer.contents); }catch(e){ return outer.contents; } }
+      return outer;
+    }catch(e){ return { errmsg: text.slice(0,200) }; }
+  }
+
+  let json;
+  try{ json = await directPush(); }
+  catch(e1){
+    try{ json = await proxyPush(); }
+    catch(e2){
+      toast({type:"ding", title:"推送失败", msg:`直连和代理均失败：${e2.message}。<br>建议点「复制 markdown」手动粘贴到钉钉群`, duration:10000});
       return false;
     }
-  } catch(e){
-    toast({type:"ding", title:"推送失败", msg:`网络或跨域错误：${e.message}（部分浏览器会拦截跨域请求，可改用「复制 markdown」按钮手动发到钉钉群）`, duration:10000});
+  }
+  if(json.errcode === 0 || json.errcode === undefined){
+    saveDingConfig({ lastPush: new Date().toISOString() });
+    toast({type:"ding", title:"推送成功", msg:`已把 ${data.todo.filter(x=>!x.done).length} 条待办推送到钉钉群`, duration:5000});
+    return true;
+  } else {
+    toast({type:"ding", title:"推送失败", msg:`钉钉返回：${json.errmsg || JSON.stringify(json).slice(0,150)}<br>建议改用「复制 markdown」手动发送`, duration:8000});
     return false;
   }
 }
@@ -1797,7 +1859,7 @@ function renderCalendar(){
   // 收集每日事项
   const eventsByDate = {};
   const addEv = (iso, ev)=>{ if(!eventsByDate[iso]) eventsByDate[iso]=[]; eventsByDate[iso].push(ev); };
-  (data.todo||[]).forEach(x=>{ const iso = (x.remindAt||"").slice(0,10); if(iso) addEv(iso, {type:"todo", text:x.title, done:x.done, key:"todo", id:x.id}); });
+  (data.todo||[]).forEach(x=>{ const iso = (x.remindAt||"").slice(0,10); if(iso) addEv(iso, {type:"todo", text:x.title, done:x.done, key:"todo", id:x.id, priority:x.priority}); });
   (data.goal||[]).forEach(x=>{ addEv(isoToday(), {type:"goal", text:`目标·${x.title}`, key:"goal", id:x.id}); });
   (data.checkin||[]).forEach(x=>{ if(x.log && x.log[isoToday()]) addEv(isoToday(), {type:"checkin", text:`✓ ${x.title}`, key:"checkin", id:x.id}); });
   (data.notes||[]).forEach(x=>{ if(x.date) addEv(x.date, {type:"note", text:x.title, key:"notes", id:x.id}); });
@@ -1807,7 +1869,8 @@ function renderCalendar(){
   const cellsHTML = cells.map(c=>{
     const evs = eventsByDate[c.iso] || [];
     const cls = `cal-cell${c.other?" other":""}${c.iso===todayIso?" today":""}`;
-    const evsHTML = evs.slice(0,3).map(e=>`<div class="cev ${e.type}" data-mk="${e.key}" data-id="${e.id}" title="${attr(e.text)}">${esc(e.done?"✓ ":"")}${esc(e.text)}</div>`).join("");
+    const evsHTML = evs.slice(0,3).map(e=>{ const priCls = e.type==="todo" ? ` pri-${e.priority||"P1"}` : "";
+      return `<div class="cev ${e.type}${priCls}" data-mk="${e.key}" data-id="${e.id}" title="${attr(e.text)}">${esc(e.done?"✓ ":"")}${esc(e.text)}</div>`; }).join("");
     const more = evs.length>3 ? `<div class="cadd">+${evs.length-3} 更多</div>` : "";
     return `<div class="${cls}" data-date="${c.iso}">
       <div class="cd">${c.day}</div>${evsHTML}${more}</div>`;
@@ -1847,6 +1910,13 @@ function renderCalendar(){
             <button class="today-btn" id="cal-today">回到今天</button>
           </div>
           <div class="cal-grid">${dows}${cellsHTML}</div>
+          <div class="cal-legend">
+            <span class="lg"><i style="background:#c25d4f"></i>P0 紧急</span>
+            <span class="lg"><i style="background:#bd8a4e"></i>P1 一般</span>
+            <span class="lg"><i style="background:#5f7a99"></i>P2 随手</span>
+            <span class="lg"><i style="background:#7a6a9a"></i>灵感</span>
+            <span class="lg"><i style="background:#a07a5a"></i>打卡</span>
+          </div>
         </div>
       </div>
       <aside class="cal-side">
@@ -1902,10 +1972,12 @@ function renderDingTalk(){
       <div class="ding-row"><label>上次推送</label><span style="color:var(--text-secondary);font-size:13px">${esc(lastPush)}</span></div>
       <div class="ding-actions">
         <button class="btn" id="ding-save">${icon("check",16,2.2)}保存配置</button>
+        <button class="btn" id="ding-copy" style="background:var(--module-2);color:#fff">${icon("tag",16,2.2)}复制 markdown（推荐）</button>
         <button class="btn ghost" id="ding-push">${icon("send",16,2.2)}推送今日待办（${todoCount} 条）</button>
-        <button class="btn ghost" id="ding-export">${icon("download",16,2.2)}导出 markdown</button>
-        <button class="btn ghost" id="ding-copy">${icon("tag",16,2.2)}复制 markdown</button>
+        <button class="btn ghost" id="ding-export">${icon("download",16,2.2)}导出 markdown 文件</button>
       </div>
+      <div style="font-size:11.5px;color:var(--text-tertiary);margin-top:8px;line-height:1.6">
+        💡 「复制 markdown」最稳定（不受浏览器跨域限制）；点「推送今日待办」会尝试直连 + CORS 代理自动重试。</div>
     </div>
 
     <div class="ding-card">
@@ -1925,8 +1997,20 @@ function renderDingTalk(){
   $("#ding-push").onclick = pushToDingTalk;
   $("#ding-export").onclick = downloadTodoMarkdown;
   $("#ding-copy").onclick = async ()=>{
-    try { await navigator.clipboard.writeText(buildTodoMarkdown(false)); toast({type:"ding", title:"已复制到剪贴板", msg:"可粘贴到钉钉群消息或文档", duration:4000}); }
-    catch(e){ toast({type:"ding", title:"复制失败", msg:e.message, duration:5000}); }
+    const text = buildTodoMarkdown(false);
+    try {
+      if(navigator.clipboard && window.isSecureContext){
+        await navigator.clipboard.writeText(text);
+      } else {
+        const ta = document.createElement("textarea");
+        ta.value = text; ta.style.position="fixed"; ta.style.opacity="0";
+        document.body.appendChild(ta); ta.select();
+        document.execCommand("copy"); ta.remove();
+      }
+      toast({type:"ding", title:"已复制到剪贴板", msg:"可粘贴到钉钉群消息或文档", duration:4000});
+    } catch(e){
+      toast({type:"ding", title:"复制失败", msg:e.message+"。可改用「导出 markdown 文件」", duration:6000});
+    }
   };
 }
 
@@ -1950,7 +2034,7 @@ function renderAutoExtract(){
       <div class="top" style="padding-right:60px">
         <div class="body" style="flex-direction:column;align-items:stretch;gap:6px">
           <div><span class="rname">${esc(t.title)}</span><span class="auto-badge">自动提取</span></div>
-          ${t.remindAt?`<span class="rdate" style="margin-left:0;color:var(--module-3)">⏰ ${fmtTime(t.remindAt)}</span>`:""}
+          ${t.remindAt?remindBadgeHTML(t.remindAt):""}
           <div class="rnote">${esc(t.note||"")}</div>
         </div>
       </div>
@@ -2055,7 +2139,7 @@ function renderExternal(){
       <div class="top" style="padding-right:60px">
         <div class="body" style="flex-direction:column;align-items:stretch;gap:6px">
           <div><span class="rname">${esc(x.title)}</span><span class="auto-badge">本地规则</span></div>
-          ${x.remindAt?`<span class="rdate" style="margin-left:0;color:var(--module-3)">⏰ ${fmtTime(x.remindAt)}</span>`:""}
+          ${x.remindAt?remindBadgeHTML(x.remindAt):""}
           <div class="rnote">${esc(x.note||"")}</div>
         </div>
       </div>
@@ -2120,7 +2204,7 @@ function externalRecHTML(x, i, isPending){
           ${x.source === "trae" ? `<span class="auto-badge" style="background:var(--module-2);color:#fff">Trae LLM</span>` : `<span class="auto-badge">外部</span>`}
           ${x.source && typeof x.source === "string" && x.source !== "trae" ? `<span class="badge" style="background:var(--surface-nested);color:var(--text-secondary);font-size:11px">${esc(x.source)}</span>` : ""}
         </div>
-        ${x.remindAt?`<span class="rdate" style="margin-left:0;color:var(--module-3)">⏰ ${fmtTime(x.remindAt)}</span>`:""}
+        ${x.remindAt?remindBadgeHTML(x.remindAt):""}
         ${x.priority?`<span class="badge" style="background:var(--accent-muted);color:var(--accent);font-size:11px">${esc(x.priority)}</span>`:""}
         ${x.note?`<div class="rnote">${esc(x.note)}</div>`:""}
         ${x.rawText?`<div class="rnote" style="color:var(--text-tertiary);font-size:12px;border-left:2px solid var(--border);padding-left:8px;margin-top:4px">原文：${esc((x.rawText||"").slice(0,80))}${(x.rawText||"").length>80?"…":""}</div>`:""}
@@ -2337,7 +2421,7 @@ function renderLLMResult(tasks, sourceLabel, sourceTag){
         <div class="body" style="flex-direction:column;align-items:stretch;gap:6px">
           <div><span class="rname">${esc(t.title||"")}</span><span class="auto-badge" style="background:var(--module-2);color:#fff">${sourceLabel}</span></div>
           ${t.priority?`<span class="badge" style="background:var(--accent-muted);color:var(--accent);font-size:11px">${esc(t.priority)}</span>`:""}
-          ${t.remindAt?`<span class="rdate" style="margin-left:0;color:var(--module-3)">⏰ ${fmtTime(t.remindAt)}</span>`:""}
+          ${t.remindAt?remindBadgeHTML(t.remindAt):""}
           ${t.note?`<div class="rnote">${esc(t.note)}</div>`:""}
         </div>
       </div>
