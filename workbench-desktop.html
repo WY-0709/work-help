@@ -1996,49 +1996,43 @@ function renderExternal(){
   const pending = externalMsgs.filter(x=>!x.accepted);
   const accepted = externalMsgs.filter(x=>x.accepted);
   const auto = data.__pendingAuto || [];
+  const hasKey = !!data.__llmKey;
   $("#screen").innerHTML = `<div class="header">
-    <div><h2>外部消息汇总</h2><p>从微信 / 钉钉复制消息后粘贴进来 · 规则提取任务 · Trae 会话可写入</p></div>
+    <div><h2>外部消息汇总</h2><p>从微信 / 钉钉复制消息后粘贴进来 · 一键调 LLM 提取任务</p></div>
     <div class="spacer"></div><span class="date-chip">${icon("send",14)} ${externalMsgs.length} 条外部</span>
+    <button class="btn ghost" id="ext-settings" style="margin-left:8px;padding:6px 12px;font-size:12.5px">${icon("settings",14)} ${hasKey?"已设置LLM":"未设置LLM"}</button>
   </div>
 
   <div class="auto-extract-banner" style="background:linear-gradient(135deg,var(--accent-muted),var(--surface-nested))">
-    <div class="ab-ic" style="color:var(--accent)">${icon("send",22)}</div>
-    <div class="ab-tx"><div class="ab-t">三路汇总</div>
+    <div class="ab-ic" style="color:var(--accent)">${icon("sparkles",22)}</div>
+    <div class="ab-tx"><div class="ab-t">${hasKey?"LLM 语义提取已就绪":"LLM 语义提取待配置"}</div>
       <div class="ab-s" style="line-height:1.7">
-        ① <b>粘贴框提取</b>：从微信/钉钉网页版或客户端复制聊天记录 → 粘贴 → 规则引擎识别任务<br>
-        ② <b>Trae 会话提取</b>：在 Trae 对话里贴消息，让 Trae 用 LLM 语义提取，结果写入 <code style="background:var(--surface-card);padding:1px 5px;border-radius:4px;font-size:11px">/data/tasks.json</code>，本页自动拉取<br>
-        ③ <b>手动确认</b>：所有候选都需要你点 ✓ 才入待办清单
+        ${hasKey
+          ? `从微信/钉钉复制消息后 → 粘贴到下方输入框 → 点「LLM 提取任务」 → 自动识别任务（含语义级隐含任务）→ 点 ✓ 入待办清单`
+          : `① 点右上角「未设置LLM」按钮，填入智谱 GLM API key（<a href="https://open.bigmodel.cn/usercenter/apikeys" target="_blank" style="color:var(--accent);text-decoration:underline">注册免费领</a>）<br>
+             ② 复制微信/钉钉消息 → 粘贴到下方输入框 → 点「LLM 提取任务」 → 自动识别 → 点 ✓ 入待办清单`}
       </div>
     </div>
   </div>
 
-  <div class="sec-title">① 粘贴框提取（推荐）</div>
+  <div class="sec-title">粘贴消息 → 一键提取</div>
   <div class="ext-paste">
-    <textarea id="ext-input" placeholder="从微信/钉钉复制聊天记录后 Ctrl+V 粘贴到这里...
-
-支持识别的句子模式：
-  · 「明天下午3点和老板过方案」  → 任务 + 时间
-  · 「下周一前必须交报告」       → 任务 + 截止
-  · 「记得给小李发数据」         → 任务
-  · 「15号前回复客户」           → 任务 + 截止
-  · 「今晚8点要开会」            → 任务 + 时间
-"></textarea>
+    <textarea id="ext-input" placeholder="从微信/钉钉复制聊天记录后 Ctrl+V 粘贴到这里..."></textarea>
     <div class="ext-actions">
-      <button class="btn" id="ext-extract">${icon("sparkles",15)} 提取任务</button>
-      <button class="btn ghost" id="ext-clear">${icon("trash",14)} 清空</button>
-      <div class="spacer"></div>
-      <span style="color:var(--text-tertiary);font-size:12.5px">无 LLM · 本地规则识别</span>
+      <button class="btn" id="ext-extract-llm" style="background:var(--accent);color:var(--on-accent)">${icon("sparkles",15)} ${hasKey?"LLM 提取任务":"设置 LLM 后提取"}</button>
+      <button class="btn ghost" id="ext-extract-rule" style="margin-left:4px">${icon("list",14)} 规则提取</button>
+      <button class="btn ghost" id="ext-clear" style="margin-left:4px">${icon("trash",14)} 清空</button>
     </div>
     <div id="ext-result" class="ext-result"></div>
   </div>
 
-  <div class="sec-title" style="margin-top:28px">② Trae 会话写入的外部任务
-    <span style="margin-left:auto;font-weight:500;color:var(--text-secondary);font-size:12px">数据源：/data/tasks.json · 每分钟拉取</span>
-    <button class="btn ghost" id="ext-refresh" style="margin-left:8px;padding:4px 10px;font-size:12px">${icon("refresh",13)} 立即刷新</button>
+  <div class="sec-title" style="margin-top:28px">已识别的待办候选
+    <span style="margin-left:auto;font-weight:500;color:var(--text-secondary);font-size:12px">${pending.length} 条待确认</span>
+    <button class="btn ghost" id="ext-refresh" style="margin-left:8px;padding:4px 10px;font-size:12px">${icon("refresh",13)} 刷新</button>
   </div>
   <div class="rec-grid" id="ext-trage-list">${pending.length ? pending.map((x,i)=>externalRecHTML(x,i,true)).join("")
     : `<div class="empty"><span class="e">${icon("send",24)}</span>
-        <div>Trae 会话里贴消息后，让 Trae 提取并写入 <code>/data/tasks.json</code>，这里会自动显示。</div></div>`}</div>
+        <div>暂无候选。${hasKey?"在上方粘贴消息后点「LLM 提取任务」即可。":"先点右上角「未设置LLM」配置 API key。"}</div></div>`}</div>
 
   ${accepted.length ? `<div class="sec-title" style="margin-top:24px">已确认的外部任务</div>
     <div class="rec-grid">${accepted.map((x,i)=>externalRecHTML(x,i,false)).join("")}</div>` : ""}
@@ -2058,12 +2052,14 @@ function renderExternal(){
       </div>
     </div>`).join("")}</div>` : ""}`;
 
-  $("#ext-extract").onclick = extractFromPaste;
+  $("#ext-extract-llm").onclick = extractWithLLM;
+  $("#ext-extract-rule").onclick = extractFromPaste;
   $("#ext-clear").onclick = ()=>{ $("#ext-input").value=""; $("#ext-result").innerHTML=""; };
+  $("#ext-settings").onclick = openLLMSettings;
   $("#ext-refresh").onclick = async ()=>{
     await fetchExternalTasks();
     renderExternal();
-    toast({type:"info", title:"已刷新", msg:`拉取到 ${externalMsgs.length} 条外部任务`, duration:3000});
+    toast({type:"info", title:"已刷新", msg:`${externalMsgs.length} 条外部任务`, duration:3000});
   };
   $("#ext-trage-list").querySelectorAll(".js-ext-accept").forEach(el=>el.onclick=e=>{
     e.stopPropagation();
@@ -2124,6 +2120,171 @@ function externalRecHTML(x, i, isPending){
   </div>`;
 }
 
+/* ---------- LLM 设置弹窗 + 调智谱 GLM API 提取 ---------- */
+function openLLMSettings(){
+  const cur = data.__llmKey || "";
+  const modal = document.createElement("div");
+  modal.className = "modal-mask";
+  modal.innerHTML = `<div class="modal" style="max-width:480px">
+    <div class="modal-head"><h3>LLM API 设置</h3><button class="modal-x">×</button></div>
+    <div class="modal-body" style="padding:18px">
+      <div style="margin-bottom:14px">
+        <label style="display:block;font-size:12.5px;color:var(--text-secondary);margin-bottom:6px">智谱 GLM API Key</label>
+        <input id="llm-key-input" type="password" placeholder="粘贴智谱 API Key..." value="${attr(cur)}"
+          style="width:100%;padding:10px 12px;border:1px solid var(--border-input);border-radius:var(--radius-tile);font:inherit;font-size:13.5px;box-sizing:border-box"/>
+        <div style="font-size:11.5px;color:var(--text-tertiary);margin-top:6px;line-height:1.6">
+          1. 打开 <a href="https://open.bigmodel.cn/usercenter/apikeys" target="_blank" style="color:var(--accent);text-decoration:underline">智谱开放平台</a> 注册账号（免费）<br>
+          2. 在「API Keys」页面创建 key，复制后粘贴到上方<br>
+          3. key 只存在你这台浏览器的本地存储，不上传服务器
+        </div>
+      </div>
+      <div style="margin-bottom:10px">
+        <label style="display:block;font-size:12.5px;color:var(--text-secondary);margin-bottom:6px">模型</label>
+        <select id="llm-model-select" style="width:100%;padding:10px 12px;border:1px solid var(--border-input);border-radius:var(--radius-tile);font:inherit;font-size:13.5px;box-sizing:border-box">
+          <option value="glm-4-flash" ${data.__llmModel==="glm-4-flash"?"selected":""}>glm-4-flash（免费·推荐）</option>
+          <option value="glm-4-air" ${data.__llmModel==="glm-4-air"?"selected":""}>glm-4-air（更精准·收费）</option>
+          <option value="glm-4-plus" ${data.__llmModel==="glm-4-plus"?"selected":""}>glm-4-plus（最强·收费）</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn ghost" id="llm-clear">清空</button>
+      <button class="btn" id="llm-save">保存</button>
+    </div>
+  </div>`;
+  document.body.appendChild(modal);
+  modal.querySelector(".modal-x").onclick = ()=>modal.remove();
+  modal.onclick = e=>{ if(e.target===modal) modal.remove(); };
+  modal.querySelector("#llm-save").onclick = ()=>{
+    const k = modal.querySelector("#llm-key-input").value.trim();
+    const m = modal.querySelector("#llm-model-select").value;
+    if(!k){ toast({type:"info",title:"未填key",msg:"请先填入 API Key",duration:3000}); return; }
+    data.__llmKey = k; data.__llmModel = m;
+    store.save();
+    modal.remove();
+    renderExternal();
+    toast({type:"auto",title:"已保存",msg:`LLM 模型：${m}`,duration:3000});
+  };
+  modal.querySelector("#llm-clear").onclick = ()=>{
+    data.__llmKey = ""; data.__llmModel = "";
+    store.save();
+    modal.remove();
+    renderExternal();
+    toast({type:"info",title:"已清空",msg:"LLM 设置已清除",duration:3000});
+  };
+}
+
+/* 调智谱 GLM API 提取任务 */
+async function extractWithLLM(){
+  const text = $("#ext-input").value.trim();
+  if(!text){ toast({type:"info",title:"请先粘贴消息",msg:"从微信/钉钉复制后 Ctrl+V 粘贴",duration:3000}); return; }
+  if(!data.__llmKey){
+    toast({type:"info",title:"未配置 LLM",msg:"点右上角「设置LLM」填入 API Key",duration:4000});
+    openLLMSettings();
+    return;
+  }
+  const result = $("#ext-result");
+  const btn = $("#ext-extract-llm");
+  const oldHTML = btn.innerHTML;
+  btn.disabled = true; btn.innerHTML = `${icon("refresh",14)} LLM 提取中...`;
+  result.innerHTML = `<div class="empty" style="padding:20px"><span class="e">${icon("sparkles",24)}</span><div>正在调用 LLM 语义提取...</div></div>`;
+  try{
+    const tasks = await callGLMExtract(text, data.__llmKey, data.__llmModel || "glm-4-flash");
+    renderLLMResult(tasks, "LLM 提取", "trae");
+  }catch(e){
+    result.innerHTML = `<div class="empty" style="padding:20px"><span class="e">${icon("close",24)}</span>
+      <div>LLM 调用失败：${esc(e.message||"")}<br><br>建议：<br>1. 检查 API Key 是否正确<br>2. 网络是否能访问 open.bigmodel.cn<br>3. 改用「规则提取」按钮（不依赖 LLM）</div></div>`;
+  }finally{
+    btn.disabled = false; btn.innerHTML = oldHTML;
+  }
+}
+
+/* 调用智谱 GLM API */
+async function callGLMExtract(text, apiKey, model){
+  const prompt = `你是一个任务提取助手。下面是从微信/钉钉聊天里复制的消息文本。请识别其中的"待办任务"，输出 JSON 数组，每个任务包含字段：
+- title：任务简短描述（不超过40字，去掉时间词和动作词）
+- priority：优先级，"P0"（重要/紧急/截止近）/"P1"（一般）/"P2"（随手）
+- remindAt：提醒时间，ISO 格式如 "2026-09-14T15:00:00"，无法判断则空字符串
+- note：原文相关上下文（不超过60字）
+
+只输出 JSON 数组，不要 markdown 代码块包裹，不要解释。识别不到任务时返回 []。
+
+今天日期：${new Date().toLocaleDateString("zh-CN")} ${new Date().toLocaleTimeString("zh-CN")}
+
+消息文本：
+"""
+${text}
+"""`;
+
+  const res = await fetch("https://open.bigmodel.cn/api/paas/v4/chat/completions", {
+    method:"POST",
+    headers:{
+      "Content-Type":"application/json",
+      "Authorization": `Bearer ${apiKey}`
+    },
+    body: JSON.stringify({
+      model: model,
+      messages: [{ role:"user", content: prompt }],
+      temperature: 0.1,
+      response_format: { type:"json_object" }
+    })
+  });
+  if(!res.ok){
+    const errText = await res.text();
+    throw new Error(`HTTP ${res.status} ${errText.slice(0,200)}`);
+  }
+  const json = await res.json();
+  const content = json.choices?.[0]?.message?.content || "[]";
+  // 智谱可能用 json_object 模式返回 {"tasks":[...]}，也可能直接返回数组
+  let parsed;
+  try{ parsed = JSON.parse(content); }catch(e){ throw new Error("LLM 返回非 JSON：" + content.slice(0,200)); }
+  if(parsed && Array.isArray(parsed)) return parsed;
+  if(parsed && Array.isArray(parsed.tasks)) return parsed.tasks;
+  if(parsed && Array.isArray(parsed.result)) return parsed.result;
+  return [];
+}
+
+/* 渲染 LLM/规则提取结果到 result 区域，支持点击确认 */
+function renderLLMResult(tasks, sourceLabel, sourceTag){
+  const result = $("#ext-result");
+  if(!tasks.length){
+    result.innerHTML = `<div class="empty" style="padding:20px"><span class="e">${icon("sparkles",24)}</span>
+      <div>未识别到任务。<br><br>可能原因：<br>· 消息里都是闲聊，没有任务<br>· LLM 判断后认为没有可执行项<br><br>可以再粘其他消息试试。</div></div>`;
+    return;
+  }
+  result.innerHTML = `<div class="sec-title" style="margin:8px 0">${sourceLabel} · 识别到 ${tasks.length} 条候选 · 点击 ✓ 加入待办</div>
+    <div class="rec-grid">${tasks.map((t,i)=>`<div class="rec">
+      <div class="top" style="padding-right:60px">
+        <div class="body" style="flex-direction:column;align-items:stretch;gap:6px">
+          <div><span class="rname">${esc(t.title||"")}</span><span class="auto-badge" style="background:var(--module-2);color:#fff">${sourceLabel}</span></div>
+          ${t.priority?`<span class="badge" style="background:var(--accent-muted);color:var(--accent);font-size:11px">${esc(t.priority)}</span>`:""}
+          ${t.remindAt?`<span class="rdate" style="margin-left:0;color:var(--module-3)">⏰ ${fmtTime(t.remindAt)}</span>`:""}
+          ${t.note?`<div class="rnote">${esc(t.note)}</div>`:""}
+        </div>
+      </div>
+      <div class="acts" style="opacity:1">
+        <button class="pin-btn js-llm-accept" data-i="${i}" title="加入待办" style="color:var(--module-1)">${icon("check",15,2.4)}</button>
+        <button class="del js-llm-reject" data-i="${i}" title="忽略">${icon("trash",15)}</button>
+      </div>
+    </div>`).join("")}</div>`;
+  result.querySelectorAll(".js-llm-accept").forEach(el=>el.onclick=e=>{
+    e.stopPropagation();
+    const i = +el.dataset.i; const t = tasks[i]; if(!t) return;
+    const item = { id: Date.now(), title: t.title || "未命名任务", priority: t.priority || "P1", done:false, note: t.note || "外部消息提取", remindAt: t.remindAt || "", auto:true, source: sourceTag };
+    (data.todo = data.todo||[]).unshift(item);
+    persist();
+    toast({type:"auto", title:"已加入待办", msg:`「${t.title}」已加入待办清单`, duration:4000});
+    tasks.splice(i,1);
+    renderLLMResult(tasks, sourceLabel, sourceTag);
+  });
+  result.querySelectorAll(".js-llm-reject").forEach(el=>el.onclick=e=>{
+    e.stopPropagation();
+    const i = +el.dataset.i;
+    tasks.splice(i,1);
+    renderLLMResult(tasks, sourceLabel, sourceTag);
+  });
+}
+
 function extractFromPaste(){
   const text = $("#ext-input").value.trim();
   if(!text){ toast({type:"info",title:"请先粘贴消息",msg:"从微信/钉钉复制后 Ctrl+V 粘贴",duration:3000}); return; }
@@ -2132,40 +2293,10 @@ function extractFromPaste(){
   if(!tasks.length){
     result.innerHTML = `<div class="empty" style="padding:20px"><span class="e">${icon("sparkles",24)}</span>
       <div>未识别到任务候选。<br>规则识别需要句子中同时出现<b>时间</b>（明天/下周三/15号/14:30）和<b>动作</b>（要/得/记得/截止/确认/回复）关键词。<br><br>
-      <b>建议：</b>把这段消息直接贴到 Trae 会话里，让 Trae 用 LLM 帮你提取。</div></div>`;
+      <b>建议：</b>改用「LLM 提取任务」按钮，能识别语义级任务。</div></div>`;
     return;
   }
-  result.innerHTML = `<div class="sec-title" style="margin:8px 0">识别到 ${tasks.length} 条候选 · 点击 ✓ 加入待办</div>
-    <div class="rec-grid">${tasks.map((t,i)=>`<div class="rec">
-      <div class="top" style="padding-right:60px">
-        <div class="body" style="flex-direction:column;align-items:stretch;gap:6px">
-          <div><span class="rname">${esc(t.title)}</span><span class="auto-badge">规则识别</span></div>
-          ${t.remindAt?`<span class="rdate" style="margin-left:0;color:var(--module-3)">⏰ ${fmtTime(t.remindAt)}</span>`:""}
-          <div class="rnote">${esc(t.note||"")}</div>
-        </div>
-      </div>
-      <div class="acts" style="opacity:1">
-        <button class="pin-btn js-paste-accept" data-i="${i}" title="加入待办" style="color:var(--module-1)">${icon("check",15,2.4)}</button>
-        <button class="del js-paste-reject" data-i="${i}" title="忽略">${icon("trash",15)}</button>
-      </div>
-    </div>`).join("")}</div>`;
-  result.querySelectorAll(".js-paste-accept").forEach(el=>el.onclick=e=>{
-    e.stopPropagation();
-    const i = +el.dataset.i; const t = tasks[i]; if(!t) return;
-    const item = { id: Date.now(), title: t.title, priority: t.priority || "P1", done:false, note: t.note || "外部粘贴提取", remindAt: t.remindAt || "", auto:true };
-    (data.todo = data.todo||[]).unshift(item);
-    persist();
-    toast({type:"auto", title:"已加入待办", msg:`「${t.title}」已加入`, duration:4000});
-    // 从结果列表中移除
-    tasks.splice(i,1);
-    extractFromPaste();   // 重新渲染剩余的
-  });
-  result.querySelectorAll(".js-paste-reject").forEach(el=>el.onclick=e=>{
-    e.stopPropagation();
-    const i = +el.dataset.i;
-    tasks.splice(i,1);
-    extractFromPaste();
-  });
+  renderLLMResult(tasks, "规则识别", "rule");
 }
 
 startExternalPolling();
