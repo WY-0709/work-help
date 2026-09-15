@@ -507,7 +507,7 @@
   .mini-seg .opt svg { vertical-align:-2px; }
   /* 四象限视图 */
   .quad-view { position:relative; padding: 10px 22px 22px 10px; }
-  .quad-axis-y { position:absolute; left:-2px; top:45%; writing-mode:vertical-rl; transform:rotate(180deg);
+  .quad-axis-y { position:absolute; left:-2px; top:45%; writing-mode:vertical-lr; text-orientation:upright;
     font-size:11px; color:var(--text-tertiary); letter-spacing:.1em; }
   .quad-axis-x { text-align:center; font-size:11px; color:var(--text-tertiary); margin-top:8px; letter-spacing:.1em; }
   .quad-grid { display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; gap:12px; min-height:420px; }
@@ -694,7 +694,7 @@
   .field label { display:block; color:var(--text-secondary); font-size:13px; margin-bottom:6px; }
   /* 四象限选择器 */
   .quad-picker { display:grid; grid-template-columns: 22px 1fr; grid-template-rows: 1fr 18px; gap:4px; align-items:center; }
-  .qp-y { writing-mode:vertical-rl; text-orientation:mixed; font-size:10px; color:var(--text-tertiary); text-align:center; transform:rotate(180deg); letter-spacing:.1em; }
+  .qp-y { writing-mode:vertical-lr; text-orientation:upright; font-size:10px; color:var(--text-tertiary); text-align:center; letter-spacing:.1em; }
   .qp-x { grid-column:2; font-size:10px; color:var(--text-tertiary); text-align:center; letter-spacing:.1em; }
   .qp-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:3px; grid-column:2; grid-row:1; }
   .qp-cell { aspect-ratio:1; border-radius:5px; cursor:pointer; transition:transform .12s, box-shadow .12s; border:1.5px solid transparent; }
@@ -1754,7 +1754,7 @@ function renderQuadrantView(items){
     }).join(""):`<div class="q-empty">暂无</div>`}</div>
   </div>`;
   return `<div class="quad-view">
-    <div class="quad-axis-y">紧急度 ↑</div>
+    <div class="quad-axis-y">↑ 度急紧</div>
     <div class="quad-axis-x">重要度 →</div>
     <div class="quad-grid">
       ${qCard('q2','Q2 · 重要不紧急','#5f7a99')}
@@ -1856,7 +1856,7 @@ function openEditor(key,item){
       <div class="field"><label>优先级</label><div class="seg" id="f-prio">${(m.priorities||[]).map(p=>`<div class="opt ${p.key===d.priority?'on':''}" data-v="${p.key}">${p.label}</div>`).join("")}</div></div>
       <div class="field"><label>四象限定位（点击格子）</label>
         <div class="quad-picker" id="quadPicker">
-          <div class="qp-y">紧急 →</div>
+          <div class="qp-y">↑ 急紧</div>
           <div class="qp-grid">
             ${[5,4,3,2,1].map(r=>[1,2,3,4,5].map(c=>{
               const q = c>=3&&r>=3?'q1':c>=3&&r<3?'q2':c<3&&r>=3?'q3':'q4';
