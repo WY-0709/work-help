@@ -853,6 +853,33 @@
   .pomo .pstats .ps { background:rgba(244,243,240,.06); border-radius:10px; padding:9px 4px; }
   .pomo .pstats .pv { font-size:18px; font-weight:800; letter-spacing:-.02em; }
   .pomo .pstats .pl { font-size:10.5px; opacity:.55; margin-top:2px; }
+  .pomo .pomo-durs { display:flex; gap:6px; justify-content:center; margin:10px 0 2px; }
+  .pomo .pomo-dur { border:1px solid rgba(244,243,240,.2); background:rgba(244,243,240,.06); color:rgba(244,243,240,.7);
+    border-radius:8px; padding:5px 12px; font-size:12px; font-weight:700; cursor:pointer; transition:all .15s; }
+  .pomo .pomo-dur:hover { background:rgba(244,243,240,.14); }
+  .pomo .pomo-dur.on { background:var(--drawer-text); color:var(--drawer-bg); border-color:var(--drawer-text); }
+  .pomo .pomo-task { width:100%; box-sizing:border-box; margin:6px 0 12px; padding:8px 12px;
+    border:1px solid rgba(244,243,240,.18); background:rgba(244,243,240,.06); color:var(--drawer-text);
+    border-radius:9px; font-size:13px; font-family:inherit; outline:none; transition:border .15s; }
+  .pomo .pomo-task:focus { border-color:rgba(230,184,119,.5); }
+  .pomo .pomo-task::placeholder { color:rgba(244,243,240,.35); }
+  .pomo .pomo-task[readonly] { opacity:.6; cursor:not-allowed; }
+  /* 专注完成弹窗 */
+  .pomo-overlay { position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,.45); display:flex; align-items:center; justify-content:center; backdrop-filter:blur(4px); }
+  .pomo-dialog { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:32px 28px 24px;
+    text-align:center; max-width:360px; width:90%; box-shadow:var(--shadow-overlay); animation:pomoPop .3s ease; }
+  @keyframes pomoPop { from{opacity:0;transform:scale(.9)} to{opacity:1;transform:scale(1)} }
+  .pomo-dialog .pd-icon { width:56px; height:56px; margin:0 auto 14px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    background:var(--module-1); color:#fff; }
+  .pomo-dialog .pd-title { font-size:18px; font-weight:800; color:var(--text); margin-bottom:8px; }
+  .pomo-dialog .pd-info { font-size:14px; color:var(--text-secondary); margin-bottom:4px; }
+  .pomo-dialog .pd-desc { font-size:12.5px; color:var(--text-tertiary); margin-bottom:20px; }
+  .pomo-dialog .pd-btns { display:flex; gap:10px; }
+  .pomo-dialog .pd-skip, .pomo-dialog .pd-count { flex:1; padding:10px 16px; border-radius:10px; font-size:13px; font-weight:700; cursor:pointer; transition:all .15s; border:none; }
+  .pomo-dialog .pd-skip { background:var(--surface-nested); color:var(--text-secondary); }
+  .pomo-dialog .pd-skip:hover { background:var(--border); }
+  .pomo-dialog .pd-count { background:var(--accent); color:#fff; }
+  .pomo-dialog .pd-count:hover { opacity:.88; }
 
   /* 在读好书 */
   .book-list { display:flex; flex-direction:column; gap:12px; }
@@ -1081,7 +1108,7 @@ const CONFIG = {
   // 今日概览环形（value 为 0-100 的完成度，calc 返回 {value, sub}）
   overview: [
     { key:"todo", label:"今日待办", icon:"list", color:"var(--accent)",
-      calc: d => { const it=(d.todo||[]).filter(x=>!x.done || isToday(x.doneDate)); const done=it.filter(x=>x.done).length; return { value: it.length?Math.round(done/it.length*100):0, sub:`${done}/${it.length} 项` }; } },
+      calc: d => { const it=(d.todo||[]).filter(x=>isTodoToday(x) && (!x.done || isToday(x.doneDate))); const done=it.filter(x=>x.done).length; return { value: it.length?Math.round(done/it.length*100):0, sub:`${done}/${it.length} 项` }; } },
     { key:"checkin", label:"打卡", icon:"leaf", color:"var(--module-1)",
       calc: d => { const it=d.checkin||[]; const t=today(); const done=it.filter(x=>x.log&&x.log[t]).length; return { value: it.length?Math.round(done/it.length*100):0, sub:`${done}/${it.length} 项` }; } },
     { key:"goal", label:"长期目标", icon:"target", color:"var(--module-2)", calc: d => avgProgress(d.goal) },
@@ -1198,7 +1225,7 @@ let searchQ = "";
 let todoSort = "default";   // default | time | importance | urgency | score
 let todoView = "list";      // list | quadrant
 let notesView = "book";     // book | list
-let pomo = { running:false, remain:25*60, total:25*60 };   // 番茄钟状态（内存态，跨渲染保留）
+let pomo = { running:false, remain:25*60, total:25*60, elapsed:0, task:"" };   // 番茄钟状态（内存态，跨渲染保留）
 let clockTimer = null;                                       // 全局秒级心跳（时钟 + 番茄钟）
 function persist(){ store.save(); render(); }
 function pad2(n){ return String(n).padStart(2,"0"); }
@@ -1216,18 +1243,58 @@ function weekNum(){ const n=new Date(); const s=new Date(n.getFullYear(),0,1);
 function startClock(){ if(clockTimer) return; clockTimer=setInterval(heartbeat,1000); heartbeat(); }
 function heartbeat(){
   const el=$("#clk"); if(el){ const n=new Date(); el.textContent=`${pad2(n.getHours())}:${pad2(n.getMinutes())}:${pad2(n.getSeconds())}`; }
-  if(pomo.running){ pomo.remain--; if(pomo.remain<=0) completePomo(); pomoUpdate(); }
+  if(pomo.running){ pomo.remain--; pomo.elapsed++; if(pomo.remain<=0) completePomo(); pomoUpdate(); }
 }
 function pomoUpdate(){
   const t=$("#pomo-time"); if(t){ t.textContent=`${pad2(Math.floor(pomo.remain/60))}:${pad2(pomo.remain%60)}`; }
   const fg=$("#pomo-fg"); if(fg){ const r=64,c=2*Math.PI*r; fg.style.strokeDashoffset=c*(1-pomo.remain/pomo.total); }
-  const st=$("#pomo-status"); if(st) st.textContent=pomo.running?"专注中":"已暂停";
+  const st=$("#pomo-status"); if(st) st.textContent=pomo.running?"专注中":"准备开始";
   const b=$("#pomo-toggle"); if(b) b.textContent=pomo.running?"暂停":"开始";
+  const taskIn=$("#pomo-task"); if(taskIn && document.activeElement!==taskIn) taskIn.value=pomo.task;
 }
-function completePomo(){ pomo.running=false; pomo.remain=pomo.total;
-  data.__pomo=data.__pomo||{count:0,min:0}; data.__pomo.count++; data.__pomo.min+=Math.round(pomo.total/60); store.save();
-  const c=$("#pomo-count"); if(c) c.textContent=data.__pomo.count;
-  const mn=$("#pomo-min"); if(mn) mn.textContent=data.__pomo.min;
+function pomoSetDuration(min){
+  if(pomo.running) return;
+  pomo.total=min*60; pomo.remain=min*60; pomo.elapsed=0;
+  document.querySelectorAll(".pomo-dur").forEach(b=>b.classList.toggle("on",+b.dataset.min===min));
+  pomoUpdate();
+}
+function completePomo(){
+  pomo.running=false;
+  const mins=Math.round(pomo.total/60);
+  const elapsedMins=Math.round(pomo.elapsed/60);
+  const task=pomo.task||"专注";
+  // 弹出完成确认框，让用户选择是否计入
+  showPomoCompleteDialog(elapsedMins, task);
+}
+function showPomoCompleteDialog(mins, task){
+  const ov=document.createElement("div");
+  ov.className="pomo-overlay";
+  ov.innerHTML=`<div class="pomo-dialog">
+    <div class="pd-icon">${icon("check",32,3)}</div>
+    <div class="pd-title">专注完成！</div>
+    <div class="pd-info">刚刚专注 <b>${mins}</b> 分钟${task?` · ${esc(task)}`:''}</div>
+    <div class="pd-desc">是否将本次专注计入今日统计？</div>
+    <div class="pd-btns">
+      <button class="pd-skip">没有真的专注</button>
+      <button class="pd-count">计入专注</button>
+    </div></div>`;
+  document.body.appendChild(ov);
+  ov.querySelector(".pd-count").onclick=()=>{
+    data.__pomo=data.__pomo||{count:0,min:0,sessions:[]};
+    data.__pomo.count++; data.__pomo.min+=mins;
+    data.__pomo.sessions=data.__pomo.sessions||[];
+    data.__pomo.sessions.push({date:isoToday(),mins,task,ts:Date.now()});
+    store.save();
+    ov.remove();
+    pomo.remain=pomo.total; pomo.elapsed=0; pomo.task="";
+    render();
+  };
+  ov.querySelector(".pd-skip").onclick=()=>{
+    ov.remove();
+    pomo.remain=pomo.total; pomo.elapsed=0; pomo.task="";
+    pomoUpdate();
+  };
+  ov.onclick=e=>{ if(e.target===ov){ ov.remove(); pomo.remain=pomo.total; pomo.elapsed=0; pomoUpdate(); } };
 }
 
 /* ---------- ring svg ---------- */
@@ -1296,7 +1363,7 @@ function overviewTileHTML(){
       <div class="pct">${r.value}%</div><div class="lbl">${o.label}</div><div class="sub">${r.sub}</div></div>`; }).join("");
   const recCount=CONFIG.modules.reduce((s,m)=>s+((data[m.key]||[]).length),0);
   const pinCount=CONFIG.modules.reduce((s,m)=>s+((data[m.key]||[]).filter(x=>x.pinned).length),0);
-  const todoPending=(data.todo||[]).filter(x=>!x.done).length;
+  const todoPending=(data.todo||[]).filter(x=>isTodoToday(x)&&!x.done).length;
   const autoPending=(data.__pendingAuto||[]).length;
   return `<div class="tile b12"><div class="tile-h"><span class="tic">${icon("target",16)}</span><div class="tt"><span class="en">DAILY VITALS</span><span class="zh">今日概览</span></div><span class="r">${dateStr()}</span></div>
     <div class="ov2-body">
@@ -1327,9 +1394,9 @@ function habitTileHTML(){
     <table class="habit-tb"><thead><tr><th class="hh">习惯</th>${ths}<th class="hr">完成率</th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 
-/* 待办清单（仪表盘式，就地勾选） */
+/* 待办清单（仪表盘式，就地勾选 · 仅显示今日） */
 function todoTileHTML(){
-  const it=data.todo||[]; const done=it.filter(x=>x.done).length; const pct=it.length?Math.round(done/it.length*100):0;
+  const all=data.todo||[]; const it=all.filter(x=>isTodoToday(x)); const done=it.filter(x=>x.done).length; const pct=it.length?Math.round(done/it.length*100):0;
   const chk=icon("check",12,2.8);
   const list = it.length ? it.map(x=>{ const m=modOf("todo"); const p=(m.priorities||[]).find(p=>p.key===x.priority);
     return `<div class="tk-row"><div class="tk-chk js-pin-chk ${x.done?'on':''}" data-mkey="todo" data-id="${x.id}">${chk}</div>
@@ -1341,20 +1408,25 @@ function todoTileHTML(){
     <div class="tk-list">${list}</div></div>`;
 }
 
-/* 专注番茄钟（暗色炫酷卡 · 实时倒计时） */
+/* 专注番茄钟（暗色炫酷卡 · 自由时长 · 任务记录 · 实时倒计时） */
 function pomoTileHTML(){
-  const p=data.__pomo||{count:0,min:0};
+  const p=data.__pomo||{count:0,min:0,sessions:[]};
   const r=64,c=2*Math.PI*r,off=c*(1-pomo.remain/pomo.total);
-  return `<div class="pomo b4"><div><div class="pen">POMODORO · 25 / 5</div><div class="pzh">专注番茄钟</div></div>
+  const curMin=Math.round(pomo.total/60);
+  const durations=[15,25,45,60];
+  const todaySessions=(p.sessions||[]).filter(s=>s.date===isoToday());
+  return `<div class="pomo b4"><div><div class="pen">POMODORO · FOCUS</div><div class="pzh">专注番茄钟</div></div>
+    <div class="pomo-durs">${durations.map(m=>`<button class="pomo-dur ${curMin===m?'on':''}" data-min="${m}">${m}m</button>`).join("")}</div>
     <div class="ring-wrap"><svg width="150" height="150" viewBox="0 0 150 150">
       <circle cx="75" cy="75" r="${r}" fill="none" stroke="rgba(244,243,240,.14)" stroke-width="7"/>
       <circle id="pomo-fg" cx="75" cy="75" r="${r}" fill="none" stroke="#e6b877" stroke-width="7" stroke-linecap="round"
         stroke-dasharray="${c}" stroke-dashoffset="${off}"/></svg>
-      <div class="ptime"><span class="t" id="pomo-time">${pad2(Math.floor(pomo.remain/60))}:${pad2(pomo.remain%60)}</span><span class="s" id="pomo-status">${pomo.running?'专注中':'保持专注'}</span></div></div>
-    <div class="pctl"><button class="primary" id="pomo-toggle">${pomo.running?'暂停':'开始'}</button><button id="pomo-reset">重置</button></div>
+      <div class="ptime"><span class="t" id="pomo-time">${pad2(Math.floor(pomo.remain/60))}:${pad2(pomo.remain%60)}</span><span class="s" id="pomo-status">${pomo.running?'专注中':'准备开始'}</span></div></div>
+    <input class="pomo-task" id="pomo-task" placeholder="在专注什么？写一下…" value="${attr(pomo.task)}" ${pomo.running?'readonly':''}/>
+    <div class="pctl"><button class="primary" id="pomo-toggle">${pomo.running?'暂停':'开始专注'}</button><button id="pomo-reset">重置</button></div>
     <div class="pstats"><div class="ps"><div class="pv" id="pomo-count">${p.count}</div><div class="pl">今日番茄</div></div>
       <div class="ps"><div class="pv" id="pomo-min">${p.min}</div><div class="pl">专注分钟</div></div>
-      <div class="ps"><div class="pv">${p.count+ (pomo.running?1:0)}</div><div class="pl">轮次</div></div></div></div>`;
+      <div class="ps"><div class="pv">${todaySessions.length}</div><div class="pl">今日轮次</div></div></div></div>`;
 }
 
 /* 心情趋势折线（复用 trend） */
@@ -1471,7 +1543,9 @@ function wireHome(){
   });
   // 番茄钟控制
   const tg=$("#pomo-toggle"); if(tg) tg.onclick=()=>{ pomo.running=!pomo.running; pomoUpdate(); };
-  const rs=$("#pomo-reset"); if(rs) rs.onclick=()=>{ pomo.running=false; pomo.remain=pomo.total; pomoUpdate(); };
+  const rs=$("#pomo-reset"); if(rs) rs.onclick=()=>{ pomo.running=false; pomo.remain=pomo.total; pomo.elapsed=0; pomoUpdate(); };
+  document.querySelectorAll(".pomo-dur").forEach(b=>b.onclick=()=>pomoSetDuration(+b.dataset.min));
+  const taskIn=$("#pomo-task"); if(taskIn) taskIn.oninput=()=>{ pomo.task=taskIn.value; };
 }
 
 /* ---------- INSIGHT ---------- */
@@ -1509,8 +1583,9 @@ function renderModule(key){
       <div class="mini"><div class="l">结余</div><div class="v">¥${inc-exp}</div></div>
       <div class="mini"><div class="l">笔数</div><div class="v">${all.length}</div></div></div>`;
   } else if(m.type==="todo"){
-    const done=all.filter(x=>x.done).length;
-    head=headHero(m, `${done}/${all.length}`, "今日已完成");
+    const todayIt=all.filter(x=>isTodoToday(x));
+    const done=todayIt.filter(x=>x.done).length;
+    head=headHero(m, `${done}/${todayIt.length}`, `今日已完成 · 共 ${all.length} 条`);
   } else if(m.type==="checkin"){
     const done=all.filter(x=>x.log&&x.log[t]).length;
     head=headHero(m, `${done}/${all.length}`, "今日已打卡");
@@ -2032,6 +2107,13 @@ $("#avatarInput").onchange = e => {
 
 /* ---------- 时间工具 ---------- */
 function isToday(dateStr){ if(!dateStr) return false; return dateStr === isoToday(); }
+/* 判断待办是否属于今天：无提醒时间视为今天，有提醒时间则日期须为今天 */
+function isTodoToday(x){
+  if(!x.remindAt) return true;
+  const t=new Date(x.remindAt);
+  if(isNaN(t.getTime())) return true;
+  return t.toISOString().slice(0,10) === isoToday();
+}
 function todayTs(){ return new Date(`${isoToday()}T00:00:00`).getTime(); }
 function parseRemindAt(str){ if(!str) return null; const t = new Date(str); return isNaN(t.getTime()) ? null : t; }
 function fmtTime(dateStr){ if(!dateStr) return ""; const d = new Date(dateStr); if(isNaN(d.getTime())) return "";
