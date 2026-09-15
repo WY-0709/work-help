@@ -2695,7 +2695,8 @@ function renderExternal(){
     const t = pending[idx]; if(!t) return;
     const item = { id: Date.now(), title: t.title, priority: t.priority || "P1", done:false, note: t.source||t.note||"", remindAt: t.remindAt || "", auto:true, importance:t.importance||3, urgency:t.urgency||3 };
     (data.todo = data.todo||[]).unshift(item);
-    externalMsgs[idx].accepted = true;
+    const realIdx = externalMsgs.indexOf(t);
+    if(realIdx >= 0) externalMsgs[realIdx].accepted = true;
     persist();
     renderExternal();
     toast({type:"auto", title:"已加入待办", msg:`「${t.title}」已加入待办清单`, duration:4000});
@@ -2703,7 +2704,9 @@ function renderExternal(){
   $("#ext-trage-list").querySelectorAll(".js-ext-reject").forEach(el=>el.onclick=e=>{
     e.stopPropagation();
     const idx = +el.dataset.i;
-    externalMsgs.splice(idx,1);
+    const t = pending[idx]; if(!t) return;
+    const realIdx = externalMsgs.indexOf(t);
+    if(realIdx >= 0) externalMsgs.splice(realIdx,1);
     renderExternal();
   });
   // 本地规则候选的按钮（与 renderAutoExtract 同款逻辑）
