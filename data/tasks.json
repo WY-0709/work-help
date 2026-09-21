@@ -7,7 +7,7 @@
       "source": "trae",
       "note": "客户在微信提出合同第3条修改意见，今天17点前回复",
       "rawText": "老板刚发消息说客户那边对合同第3条有修改意见，今天下午5点前我们得回复过去，否则影响明天签约",
-      "accepted": false
+      "accepted": true
     },
     {
       "title": "汇总本周项目进度发周报",
@@ -16,7 +16,7 @@
       "source": "trae",
       "note": "钉钉群里有3条项目状态消息需要汇总",
       "rawText": "群里几个负责人都报了进度，明早开会前把周报整理出来",
-      "accepted": false
+      "accepted": true
     }
   ]
 }
