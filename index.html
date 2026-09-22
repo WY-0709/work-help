@@ -536,6 +536,50 @@
   .q-drop-hint { text-align:center; color:var(--text-tertiary); font-size:11px; padding:8px 0; opacity:0; transition:opacity .15s; }
   .q-col.drag-over .q-drop-hint { opacity:1; }
 
+  /* ===== 游戏化习惯打卡卡片 ===== */
+  .habit-game { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:16px; }
+  .hc-card { position:relative; background:var(--surface-card); border:1px solid var(--border);
+    border-radius:16px; box-shadow:var(--shadow-card); padding:18px 20px; overflow:hidden;
+    transition:transform .2s, box-shadow .2s; }
+  .hc-card:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(0,0,0,.12); }
+  .hc-card.done { border-color:var(--hc-color, var(--module-1)); }
+  .hc-card::before { content:''; position:absolute; top:0; left:0; right:0; height:4px;
+    background:linear-gradient(90deg, var(--hc-color, var(--module-1)), transparent 70%); }
+  .hc-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+  .hc-name { font-size:15px; font-weight:800; display:flex; align-items:center; gap:8px; }
+  .hc-check { width:28px; height:28px; border-radius:50%; border:2.5px solid var(--border-input);
+    display:grid; place-items:center; cursor:pointer; transition:all .2s; flex:0 0 auto; background:var(--surface-card); color:var(--on-accent); }
+  .hc-check.on { background:var(--hc-color, var(--module-1)); border-color:var(--hc-color, var(--module-1)); transform:scale(1.05); }
+  .hc-check:hover { border-color:var(--hc-color, var(--module-1)); }
+  .hc-lv-badge { display:inline-flex; align-items:center; gap:4px; padding:3px 10px; border-radius:20px;
+    font-size:11px; font-weight:800; letter-spacing:.03em; white-space:nowrap;
+    background:var(--hc-tint, var(--accent-muted)); color:var(--hc-color, var(--accent)); }
+  .hc-body { display:flex; align-items:center; gap:16px; margin-bottom:14px; }
+  .hc-ring-wrap { position:relative; width:64px; height:64px; flex:0 0 auto; }
+  .hc-ring-wrap svg { transform:rotate(-90deg); }
+  .hc-ring-mid { position:absolute; inset:0; display:grid; place-items:center; }
+  .hc-ring-num { font-size:16px; font-weight:900; }
+  .hc-ring-cap { font-size:9px; color:var(--text-tertiary); }
+  .hc-stats { flex:1; min-width:0; }
+  .hc-streak { display:flex; align-items:center; gap:6px; font-size:15px; font-weight:800; margin-bottom:4px; }
+  .hc-streak svg { color:#e8702a; }
+  .hc-total { font-size:12px; color:var(--text-tertiary); margin-bottom:8px; }
+  .hc-lvbar { height:7px; border-radius:4px; background:var(--surface-nested); overflow:hidden; }
+  .hc-lvbar i { display:block; height:100%; border-radius:4px; background:var(--hc-color, var(--module-1)); transition:width .4s ease; }
+  .hc-lvbar-text { font-size:10px; color:var(--text-tertiary); margin-top:3px; display:flex; justify-content:space-between; }
+  .hc-week { display:flex; gap:4px; margin-bottom:12px; }
+  .hc-wd { flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; }
+  .hc-wd .dot { width:24px; height:24px; border-radius:7px; background:var(--surface-nested);
+    display:grid; place-items:center; font-size:10px; transition:all .15s; }
+  .hc-wd .dot.on { background:var(--hc-color, var(--module-1)); color:var(--on-accent); }
+  .hc-wd .dot.today { border:2px solid var(--hc-color, var(--module-1)); }
+  .hc-wd .lbl { font-size:9.5px; color:var(--text-tertiary); font-weight:600; }
+  .hc-reward { display:flex; align-items:center; gap:6px; padding:8px 12px; border-radius:10px;
+    background:var(--hc-tint, var(--accent-muted)); font-size:12px; }
+  .hc-reward svg { color:var(--hc-color, var(--accent)); flex:0 0 auto; }
+  .hc-reward .hc-rw-text { color:var(--text-secondary); font-weight:600; }
+  .hc-reward .hc-rw-next { color:var(--text-tertiary); font-size:11px; margin-left:auto; }
+
   /* module hero header (per-type summary) */
   .hero { display:flex; align-items:center; gap: 13px; padding: 12px 16px; border-radius: var(--radius-tile);
     background: var(--surface-card); border: 1px solid var(--border); box-shadow: var(--shadow-card); margin-bottom: 4px; position:relative; overflow:hidden; }
@@ -1198,6 +1242,11 @@ const ICONS = {
   plug:'<path d="M9 2v6"/><path d="M15 2v6"/><path d="M6 8h12v3a6 6 0 0 1-12 0z"/><path d="M12 17v5"/>',
   download:'<path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/>',
   settings:'<path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
+  award:'<circle cx="12" cy="8" r="6"/><path d="M8.5 14 7 22l5-3 5 3-1.5-8"/>',
+  gem:'<path d="M6 3h12l3 6-9 12L3 9z"/><path d="M3 9h18"/><path d="M9 3 6 9l6 12"/>',
+  crown:'<path d="M4 8l4 4 4-8 4 8 4-4-2 12H6z"/>',
+  trophy:'<path d="M7 4h10v6a5 5 0 0 1-10 0z"/><path d="M7 6H4v2a3 3 0 0 0 3 3M17 6h3v2a3 3 0 0 1-3 3M9 15v5M15 15v5M8 20h8"/>',
+  diamond:'<path d="M3 8l9-5 9 5-9 13z"/><path d="M3 8h18M12 3v18"/>',
 };
 function icon(name, size=22, sw=1.7){
   const path = ICONS[name] || ICONS.grid;
@@ -1637,12 +1686,14 @@ function renderModule(key){
     </div>`;
   }
 
-  // 四象限视图 / 手帐书本视图
+  // 四象限视图 / 手帐书本视图 / 游戏化习惯
   let mainBody="";
   if(m.type==="todo" && todoView==="quadrant"){
     mainBody = renderQuadrantView(it);
   } else if(key==="notes" && notesView==="book"){
     mainBody = renderNotesBook(it);
+  } else if(m.type==="checkin"){
+    mainBody = renderCheckinGame(it);
   } else {
     mainBody = `<div class="sec-title">全部记录 <span id="rec-count" style="margin-left:auto;font-weight:500;color:var(--text-secondary);font-size:12px">${it.length} 条</span></div>
         <div class="rec-grid">${body}</div>`;
@@ -1679,6 +1730,13 @@ function renderModuleResults(key){
   const m=modOf(key); const all=data[key]||[];
   const q=searchQ.trim().toLowerCase();
   const it=q?all.filter(x=>(x.title||"").toLowerCase().includes(q)||(x.note||x.content||"").toLowerCase().includes(q)):all;
+  /* 游戏化打卡视图搜索刷新 */
+  const hg=$(".habit-game");
+  if(hg && m.type==="checkin"){
+    hg.outerHTML = renderCheckinGame(it);
+    wireModule(key);
+    return;
+  }
   const grid=$(".rec-grid");
   if(grid){
     const body = it.length ? it.map(x=>recHTML(m,x)).join("")
@@ -1743,12 +1801,16 @@ function sideStats(m, all){
 
   if(m.type==="checkin"){
     const done=all.filter(x=>x.log&&x.log[t]).length; const pct=all.length?Math.round(done/all.length*100):0;
-    const streaks=all.map(x=>({title:x.title,s:streak(x.log)})).sort((a,b)=>b.s-a.s);
+    const streaks=all.map(x=>({title:x.title,s:streak(x.log),total:totalCheckinDays(x.log)})).sort((a,b)=>b.s-a.s);
     const best=streaks[0]?streaks[0].s:0;
-    const list=streaks.slice(0,6).map(x=>`<div class="stat-row"><span class="k">${esc(x.title)}</span><span class="val" style="color:var(--module-3)">${x.s} 天</span></div>`).join("");
+    const totalAll=all.reduce((a,x)=>a+totalCheckinDays(x.log),0);
+    const hi=habitLevel(totalAll);
+    const list=streaks.slice(0,6).map(x=>`<div class="stat-row"><span class="k">${esc(x.title)}</span><span class="val" style="color:${habitLevel(x.total).cur.color}">Lv.${habitLevel(x.total).lv} · ${x.s}天</span></div>`).join("");
     return `<div class="side-card"><div class="sh">${icon("leaf",15)} 今日打卡</div>
         <div class="side-ring"><div class="dial">${ringSVG(pct,m.color)}<span class="mid"><span class="big" style="color:${m.color}">${done}/${all.length}</span><span class="cap">已完成</span></span></div></div></div>
-      <div class="side-card"><div class="sh">${icon("flame",15)} 连续天数</div>
+      <div class="side-card"><div class="sh">${icon("flame",15)} 习惯等级</div>
+        ${row("总等级",`<span style="color:${hi.cur.color}">Lv.${hi.lv} ${hi.cur.name}</span>`)}
+        ${row("累计打卡",`${totalAll} 天`)}
         ${row("最长连续",`<span style="color:var(--module-3)">${best} 天</span>`)}
         ${row("习惯总数",`${all.length} 个`)}
         <div style="margin-top:6px">${list}</div></div>`;
@@ -1848,6 +1910,105 @@ function renderQuadrantView(items){
   </div>`;
 }
 
+/* ===== 游戏化习惯打卡 ===== */
+const HABIT_LEVELS=[
+  {min:0,  name:"初心者", color:"#5b8c5a", tint:"#e8f3e8"},
+  {min:7,  name:"坚持者", color:"#3a9b8a", tint:"#e2f4f0"},
+  {min:14, name:"习惯客", color:"#4a7cc4", tint:"#e8eff8"},
+  {min:30, name:"自律者", color:"#8a5fb8", tint:"#f0e8f8"},
+  {min:60, name:"毅力家", color:"#d67830", tint:"#f8ede0"},
+  {min:100,name:"年度王", color:"#c9a227", tint:"#f8f0dc"},
+  {min:200,name:"传奇者", color:"#2a9db8", tint:"#dcf0f5"},
+  {min:365,name:"不朽者", color:"#b8405a", tint:"#f5dce2"},
+];
+const HABIT_REWARDS=[
+  {days:1,   name:"首日打卡",     icon:"sparkles"},
+  {days:3,   name:"三日坚持",     icon:"leaf"},
+  {days:7,   name:"一周连胜",     icon:"flame"},
+  {days:14,  name:"半月达成",     icon:"star"},
+  {days:21,  name:"习惯养成",     icon:"target"},
+  {days:30,  name:"月度之星",     icon:"award"},
+  {days:50,  name:"毅力钻石",     icon:"gem"},
+  {days:100, name:"百日战神",     icon:"crown"},
+  {days:200, name:"双百传奇",     icon:"trophy"},
+  {days:365, name:"不朽之环",     icon:"diamond"},
+];
+function habitLevel(total){
+  let lv=HABIT_LEVELS[0];
+  for(const l of HABIT_LEVELS){ if(total>=l.min) lv=l; }
+  const idx=HABIT_LEVELS.indexOf(lv);
+  const next=HABIT_LEVELS[idx+1];
+  return {cur:lv, lv:idx+1, next, progress: next?Math.round((total-lv.min)/(next.min-lv.min)*100):100};
+}
+function totalCheckinDays(log){ return log?Object.keys(log).filter(k=>log[k]).length:0; }
+function nextReward(total){
+  for(const r of HABIT_REWARDS){ if(total<r.days) return r; }
+  return null;
+}
+function lastReward(total){
+  let r=null;
+  for(const x of HABIT_REWARDS){ if(total>=x.days) r=x; }
+  return r;
+}
+function renderCheckinGame(items){
+  const wk=weekDates(); const t=today(); const tIdx=wk.indexOf(t);
+  const dnames=["一","二","三","四","五","六","日"];
+  const colors=["#5b8c5a","#3a9b8a","#4a7cc4","#8a5fb8","#d67830","#c9a227","#2a9db8","#b8405a"];
+  if(!items.length) return `<div class="empty"><span class="e">${icon("leaf",28)}</span><div>还没有习惯，点右上角「新建」添加第一个吧</div></div>`;
+  return `<div class="habit-game">${items.map((x,i)=>{
+    const on=!!(x.log&&x.log[t]);
+    const st=streak(x.log);
+    const total=totalCheckinDays(x.log);
+    const hi=habitLevel(total);
+    const color=hi.cur.color;
+    const tint=hi.cur.tint;
+    const rw=nextReward(total);
+    const lastRw=lastReward(total);
+    const wkDots=wk.map((day,idx)=>{
+      const done=!!(x.log&&x.log[day]);
+      return `<div class="hc-wd"><div class="dot ${done?'on':''} ${idx===tIdx?'today':''}">${done?icon("check",11,2):''}</div><span class="lbl">${dnames[idx]}</span></div>`;
+    }).join("");
+    const ringPct=on?100:Math.min(st*14,100);
+    const ringR=26, ringC=2*Math.PI*ringR;
+    const ringOff=ringC*(1-ringPct/100);
+    return `<div class="hc-card ${on?'done':''}" style="--hc-color:${color};--hc-tint:${tint}" data-edit="${x.id}">
+      <div class="hc-top">
+        <div class="hc-name"><div class="hc-check js-habit-chk ${on?'on':''}" data-id="${x.id}">${on?icon("check",14,2):''}</div>${esc(x.title)}</div>
+        <span class="hc-lv-badge">Lv.${hi.lv} ${hi.cur.name}</span>
+      </div>
+      <div class="hc-body">
+        <div class="hc-ring-wrap">
+          <svg width="64" height="64" viewBox="0 0 64 64">
+            <circle cx="32" cy="32" r="${ringR}" fill="none" stroke="var(--surface-nested)" stroke-width="5"/>
+            <circle cx="32" cy="32" r="${ringR}" fill="none" stroke="${color}" stroke-width="5"
+              stroke-dasharray="${ringC}" stroke-dashoffset="${ringOff}" stroke-linecap="round"/>
+          </svg>
+          <div class="hc-ring-mid"><div style="text-align:center">
+            <div class="hc-ring-num" style="color:${color}">${on?'完成':st+'天'}</div>
+            <div class="hc-ring-cap">${on?'已打卡':'连续'}</div>
+          </div></div>
+        </div>
+        <div class="hc-stats">
+          <div class="hc-streak">${icon("flame",15)} 连续 ${st} 天 ${on?'<span style="font-size:11px;color:'+color+';margin-left:4px">今日已完成</span>':''}</div>
+          <div class="hc-total">累计打卡 ${total} 天 · Lv.${hi.lv} ${hi.cur.name}</div>
+          <div class="hc-lvbar"><i style="width:${hi.progress}%"></i></div>
+          <div class="hc-lvbar-text">
+            <span>${hi.next?'Lv.'+hi.lv+' → Lv.'+(hi.lv+1):'满级'}</span>
+            <span>${hi.next?total+'/'+hi.next.min+'天':'★'+hi.cur.name}</span>
+          </div>
+        </div>
+      </div>
+      <div class="hc-week">${wkDots}</div>
+      ${rw?`<div class="hc-reward">${icon(rw.icon,15)}
+        <span class="hc-rw-text">${lastRw?'已获得「'+lastRw.name+'」 · ':''}下一个奖励</span>
+        <span class="hc-rw-next">${rw.days-total}天后解锁「${rw.name}」</span>
+      </div>`:`<div class="hc-reward">${icon("crown",15)}
+        <span class="hc-rw-text">全部奖励已解锁！传奇习惯</span>
+      </div>`}
+    </div>`;
+  }).join("")}</div>`;
+}
+
 function recHTML(m,x){
   const pin=`<button class="pin-btn js-pin ${x.pinned?'on':''}" data-id="${x.id}" title="置顶">${icon("star",15)}</button>`;
   const del=`<button class="del js-del" data-id="${x.id}" title="删除">${icon("trash",15)}</button>`;
@@ -1922,7 +2083,22 @@ function wireModule(key){ const m=modOf(key);
   $("#screen").querySelectorAll(".js-chk").forEach(el=>el.onclick=e=>{ e.stopPropagation();
     const x=(data[key]).find(i=>i.id==el.dataset.id);
     if(m.type==="todo"){ x.done=!x.done; x.doneDate = x.done ? isoToday() : ""; }
-    else if(m.type==="checkin"){ x.log=x.log||{}; const t=today(); x.log[t]?delete x.log[t]:x.log[t]=true; }
+    else if(m.type==="checkin"){ x.log=x.log||{}; const t=today(); x.log[t]?delete x.log[t]:x.log[t]=true;
+      /* 打卡奖励 toast */
+      if(x.log[t]){ const newTotal=totalCheckinDays(x.log); const rw=lastReward(newTotal);
+        if(rw && newTotal===rw.days){ toast({type:"auto",title:`🎉 ${rw.name}！`,msg:`「${esc(x.title)}」达成 ${rw.days} 天成就`,duration:4000}); }
+        else { toast({type:"auto",title:`✓ 打卡成功`,msg:`「${esc(x.title)}」连续 ${streak(x.log)} 天 · 累计 ${newTotal} 天`,duration:2500}); }
+      }
+    }
+    persist(); });
+  /* 游戏化打卡圆圈点击 */
+  $("#screen").querySelectorAll(".js-habit-chk").forEach(el=>el.onclick=e=>{ e.stopPropagation();
+    const x=(data[key]).find(i=>i.id==el.dataset.id); if(!x) return;
+    x.log=x.log||{}; const t=today(); x.log[t]?delete x.log[t]:x.log[t]=true;
+    if(x.log[t]){ const newTotal=totalCheckinDays(x.log); const rw=lastReward(newTotal);
+      if(rw && newTotal===rw.days){ toast({type:"auto",title:`🎉 ${rw.name}！`,msg:`「${esc(x.title)}」达成 ${rw.days} 天成就`,duration:4000}); }
+      else { toast({type:"auto",title:`✓ 打卡成功`,msg:`「${esc(x.title)}」连续 ${streak(x.log)} 天 · 累计 ${newTotal} 天`,duration:2500}); }
+    }
     persist(); });
   $("#screen").querySelectorAll("[data-edit]").forEach(el=>el.onclick=()=>openEditor(key,(data[key]).find(i=>i.id==el.dataset.edit)));
   $("#screen").querySelectorAll(".js-del").forEach(el=>el.onclick=e=>{ e.stopPropagation(); confirmDelete(key, el.dataset.id); });
