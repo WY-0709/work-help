@@ -120,7 +120,7 @@
   [data-theme="starry"] .ov2-stat .s-v { color:#eef2fb; }
   [data-theme="starry"] .auto-extract-banner { background:linear-gradient(140deg,rgba(90,209,160,.85),rgba(74,106,63,.85)); color:#eef2fb; }
   [data-theme="starry"] .auto-extract-banner .ab-act button { background:rgba(255,255,255,.15); color:#eef2fb; }
-  [data-theme="starry"] .pomo .pctl button { border-color:rgba(238,242,251,.22); background:rgba(238,242,251,.08); color:#eef2fb; }
+  /* pomo buttons now use --pomo-* CSS variables, no per-theme overrides needed */
   [data-theme="starry"] .hc-streak svg { color:#f5a040; }
   [data-theme="starry"] .cal-day-num { color:#eef2fb; }
   [data-theme="starry"] .cal-day-other .cal-day-num { color:var(--text-tertiary); }
@@ -228,7 +228,7 @@
     background: rgba(0,240,255,.06);
   }
   [data-theme="crimson"] .navi:hover { text-shadow: 0 0 8px rgba(0,240,255,.4); }
-  [data-theme="crimson"] .pomo .pctl button { border-color:rgba(0,240,255,.22); background:rgba(0,240,255,.06); color:#e0f8ff; }
+  /* crimson pomo buttons now use --pomo-* CSS variables */
   [data-theme="crimson"] .btn { box-shadow: 0 0 20px rgba(255,0,110,.3); }
   [data-theme="crimson"] .ts-opt[data-theme="crimson"] .ts-dot { box-shadow: 0 0 8px #ff006e; }
   [data-theme="crimson"] input, [data-theme="crimson"] textarea { color:#e0f8ff; }
@@ -958,7 +958,7 @@
   .tk-name { flex:1; min-width:0; font-size:13.5px; font-weight:600; cursor:pointer; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .tk-name.done { text-decoration:line-through; color:var(--text-secondary); }
 
-  /* 番茄钟（暗色炫酷卡） */
+  /* 番茄钟卡 */
   .pomo { position:relative; overflow:hidden; border-radius:var(--radius-card); text-align:center;
     background:linear-gradient(155deg,var(--drawer-bg-top),var(--drawer-bg)); color:var(--drawer-text); padding:22px 20px; box-shadow:var(--shadow-overlay);
     display:flex; flex-direction:column; }
@@ -973,25 +973,47 @@
   .pomo .ptime .t { font-size:32px; font-weight:800; font-variant-numeric:tabular-nums; letter-spacing:.01em; }
   .pomo .ptime .s { font-size:11px; opacity:.6; }
   .pomo .pctl { display:flex; gap:8px; justify-content:center; margin-bottom:14px; }
-  .pomo .pctl button { border:1px solid rgba(244,243,240,.22); background:rgba(244,243,240,.08); color:#f4f3f0;
+  .pomo .pctl button { border:1px solid var(--pomo-border); background:var(--pomo-btn-bg); color:var(--pomo-btn-text);
     border-radius:9px; padding:8px 16px; font-size:13px; font-weight:700; cursor:pointer; transition:all .15s; }
-  .pomo .pctl button:hover { background:rgba(244,243,240,.16); }
-  .pomo .pctl button.primary { background:var(--drawer-text); color:var(--drawer-bg); border-color:var(--drawer-text); }
+  .pomo .pctl button:hover { background:var(--pomo-btn-hover); }
+  .pomo .pctl button.primary { background:var(--accent); color:var(--on-accent); border-color:var(--accent); }
   .pomo .pstats { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
-  .pomo .pstats .ps { background:rgba(244,243,240,.06); border-radius:10px; padding:9px 4px; }
-  .pomo .pstats .pv { font-size:18px; font-weight:800; letter-spacing:-.02em; }
-  .pomo .pstats .pl { font-size:10.5px; opacity:.55; margin-top:2px; }
+  .pomo .pstats .ps { background:var(--pomo-stat-bg); border-radius:10px; padding:9px 4px; }
+  .pomo .pstats .pv { font-size:18px; font-weight:800; letter-spacing:-.02em; color:var(--pomo-text); }
+  .pomo .pstats .pl { font-size:10.5px; opacity:.55; margin-top:2px; color:var(--pomo-text); }
   .pomo .pomo-durs { display:flex; gap:6px; justify-content:center; margin:10px 0 2px; }
-  .pomo .pomo-dur { border:1px solid rgba(244,243,240,.2); background:rgba(244,243,240,.06); color:rgba(244,243,240,.7);
+  .pomo .pomo-dur { border:1px solid var(--pomo-border); background:var(--pomo-btn-bg); color:var(--pomo-text-muted);
     border-radius:8px; padding:5px 12px; font-size:12px; font-weight:700; cursor:pointer; transition:all .15s; }
-  .pomo .pomo-dur:hover { background:rgba(244,243,240,.14); }
-  .pomo .pomo-dur.on { background:var(--drawer-text); color:var(--drawer-bg); border-color:var(--drawer-text); }
+  .pomo .pomo-dur:hover { background:var(--pomo-btn-hover); }
+  .pomo .pomo-dur.on { background:var(--accent); color:var(--on-accent); border-color:var(--accent); }
   .pomo .pomo-task { width:100%; box-sizing:border-box; margin:6px 0 12px; padding:8px 12px;
-    border:1px solid rgba(244,243,240,.18); background:rgba(244,243,240,.06); color:var(--drawer-text);
+    border:1px solid var(--pomo-border); background:var(--pomo-btn-bg); color:var(--pomo-text);
     border-radius:9px; font-size:13px; font-family:inherit; outline:none; transition:border .15s; }
-  .pomo .pomo-task:focus { border-color:rgba(230,184,119,.5); }
-  .pomo .pomo-task::placeholder { color:rgba(244,243,240,.35); }
+  .pomo .pomo-task:focus { border-color:var(--accent); }
+  .pomo .pomo-task::placeholder { color:var(--pomo-text-muted); }
   .pomo .pomo-task[readonly] { opacity:.6; cursor:not-allowed; }
+  /* 浅色主题番茄钟变量 — 卡片底色是深色侧栏色，所以文字用浅色 */
+  :root, [data-theme="paper"], [data-theme="retro"] {
+    --pomo-text: var(--drawer-text);
+    --pomo-text-muted: var(--drawer-text-mute);
+    --pomo-border: rgba(255,255,255,.18);
+    --pomo-btn-bg: rgba(255,255,255,.08);
+    --pomo-btn-hover: rgba(255,255,255,.16);
+    --pomo-btn-text: var(--drawer-text);
+    --pomo-stat-bg: rgba(255,255,255,.06);
+    --pomo-ring-track: rgba(255,255,255,.14);
+  }
+  /* 暗色主题番茄钟变量 */
+  [data-theme="starry"], [data-theme="crimson"] {
+    --pomo-text: #eef2fb;
+    --pomo-text-muted: rgba(238,242,251,.5);
+    --pomo-border: rgba(255,255,255,.18);
+    --pomo-btn-bg: rgba(255,255,255,.08);
+    --pomo-btn-hover: rgba(255,255,255,.16);
+    --pomo-btn-text: #eef2fb;
+    --pomo-stat-bg: rgba(255,255,255,.06);
+    --pomo-ring-track: rgba(255,255,255,.14);
+  }
   /* 专注番茄独立页面 */
   .pomo-page-grid { display:grid; grid-template-columns:1fr 340px; gap:16px; margin-bottom:20px; }
   .pomo-page-grid .pomo-main { min-width:0; }
@@ -1220,8 +1242,8 @@
         <button class="fs-opt" data-font="songti" title="宋体" style="font-family:'Noto Serif SC','Songti SC','Source Han Serif SC','SimSun',serif">宋</button>
         <button class="fs-opt" data-font="kaiti" title="楷体" style="font-family:'Kaiti SC','STKaiti','楷体','KaiTi','BiauKai',cursive">楷</button>
         <button class="fs-opt" data-font="yahei" title="微软雅黑" style="font-family:'Microsoft YaHei','微软雅黑','PingFang SC',sans-serif">雅</button>
-        <button class="fs-opt" data-font="pingfang" title="苹方" style="font-family:'PingFang SC','-apple-system',system-ui,sans-serif">苹</button>
-        <button class="fs-opt" data-font="italic" title="艺术斜体" style="font-family:'Georgia','Noto Serif SC','Songti SC',serif;font-style:italic">斜</button>
+        <button class="fs-opt" data-font="pixel" title="像素体" style="font-family:'Press Start 2P','VT323','DotGothic16','Courier New',monospace">像</button>
+        <button class="fs-opt" data-font="xingkai" title="古风行楷" style="font-family:'STXingkai','Xingkai SC','华文行楷','Kaiti SC','STKaiti',cursive">行</button>
       </div>
     </div>
     <div class="foot" id="foot">数据存本机浏览器 · 自动提取任务 · 钉钉轻量推送</div>
@@ -1577,8 +1599,8 @@ function pomoTileHTML(){
   return `<div class="pomo b4"><div><div class="pen">POMODORO · FOCUS</div><div class="pzh">专注番茄钟</div></div>
     <div class="pomo-durs">${durations.map(m=>`<button class="pomo-dur ${curMin===m?'on':''}" data-min="${m}">${m}m</button>`).join("")}</div>
     <div class="ring-wrap"><svg width="150" height="150" viewBox="0 0 150 150">
-      <circle cx="75" cy="75" r="${r}" fill="none" stroke="rgba(244,243,240,.14)" stroke-width="7"/>
-      <circle id="pomo-fg" cx="75" cy="75" r="${r}" fill="none" stroke="#e6b877" stroke-width="7" stroke-linecap="round"
+      <circle cx="75" cy="75" r="${r}" fill="none" stroke="var(--pomo-ring-track)" stroke-width="7"/>
+      <circle id="pomo-fg" cx="75" cy="75" r="${r}" fill="none" stroke="var(--accent)" stroke-width="7" stroke-linecap="round"
         stroke-dasharray="${c}" stroke-dashoffset="${off}"/></svg>
       <div class="ptime"><span class="t" id="pomo-time">${pad2(Math.floor(pomo.remain/60))}:${pad2(pomo.remain%60)}</span><span class="s" id="pomo-status">${pomo.running?'专注中':'准备开始'}</span></div></div>
     <input class="pomo-task" id="pomo-task" placeholder="在专注什么？写一下…" value="${attr(pomo.task)}" ${pomo.running?'readonly':''}/>
@@ -3505,11 +3527,11 @@ const FONT_STACKS = {
   songti:   '"Noto Serif SC", "Songti SC", "Source Han Serif SC", "SimSun", serif',
   kaiti:    '"Kaiti SC", "STKaiti", "楷体", "KaiTi", "BiauKai", "PingFang SC", cursive',
   yahei:    '"Microsoft YaHei", "微软雅黑", "PingFang SC", -apple-system, system-ui, sans-serif',
-  pingfang: '"PingFang SC", -apple-system, system-ui, "Helvetica Neue", Arial, sans-serif',
-  italic:   'Georgia, "Noto Serif SC", "Songti SC", serif',
+  pixel:    '"Press Start 2P", "VT323", "DotGothic16", "Courier New", monospace',
+  xingkai:  '"STXingkai", "Xingkai SC", "华文行楷", "Kaiti SC", "STKaiti", cursive',
 };
-const FONT_STYLES = { italic: "italic" };
-const FONT_NAMES = { default:"跟随主题", songti:"宋体", kaiti:"楷体", yahei:"微软雅黑", pingfang:"苹方", italic:"艺术斜体" };
+const FONT_STYLES = {};
+const FONT_NAMES = { default:"跟随主题", songti:"宋体", kaiti:"楷体", yahei:"微软雅黑", pixel:"像素体", xingkai:"古风行楷" };
 function applyFont(font){
   if(!FONT_STACKS[font]) font = "default";
   if(font === "default"){
