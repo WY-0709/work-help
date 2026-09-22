@@ -506,20 +506,24 @@
   .mini-seg .opt { flex:0 0 auto; padding:6px 11px; font-size:12px; min-width:auto; border-radius:8px; }
   .mini-seg .opt svg { vertical-align:-2px; }
   /* 四象限视图 */
-  .quad-view { position:relative; padding: 10px 22px 22px 10px; }
-  .quad-axis-y { position:absolute; left:-2px; top:45%; writing-mode:vertical-lr; text-orientation:upright;
-    font-size:11px; color:var(--text-tertiary); letter-spacing:.1em; }
-  .quad-axis-x { text-align:center; font-size:11px; color:var(--text-tertiary); margin-top:8px; letter-spacing:.1em; }
+  .quad-view { position:relative; padding: 10px 10px 10px 28px; }
+  .quad-axis-y { position:absolute; left:2px; top:50%; transform:translateY(-50%);
+    writing-mode:vertical-rl; text-orientation:upright;
+    font-size:11px; color:var(--text-tertiary); letter-spacing:.12em; font-weight:600; }
+  .quad-axis-x { text-align:center; font-size:11px; color:var(--text-tertiary); margin-top:8px; letter-spacing:.12em; font-weight:600; }
   .quad-grid { display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; gap:12px; min-height:420px; }
   .q-col { background:var(--surface-card); border:1px solid var(--border); border-radius:var(--radius-card);
-    box-shadow:var(--shadow-card); padding:14px 16px; display:flex; flex-direction:column; min-height:0; }
+    box-shadow:var(--shadow-card); padding:14px 16px; display:flex; flex-direction:column; min-height:0;
+    transition:box-shadow .15s, border-color .15s; }
+  .q-col.drag-over { border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-muted); }
   .q-head { display:flex; align-items:center; justify-content:space-between; padding-left:10px; border-left:4px solid; padding-bottom:10px; margin-bottom:10px; border-bottom:1px solid var(--border); }
   .qh-l { font-size:13px; font-weight:800; }
   .qh-n { font-size:12px; color:var(--text-tertiary); font-weight:600; }
   .q-items { flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:6px; }
   .q-item { display:flex; align-items:center; gap:9px; padding:8px 10px; border-radius:var(--radius-tile);
-    background:var(--surface-nested); cursor:pointer; transition:background .12s; }
+    background:var(--surface-nested); cursor:grab; transition:background .12s, opacity .12s; }
   .q-item:hover { background:var(--accent-muted); }
+  .q-item.dragging { opacity:.4; }
   .q-item.done .qi-t { text-decoration:line-through; color:var(--text-tertiary); }
   .qi-chk { width:18px; height:18px; border-radius:5px; border:1.5px solid var(--border-input); flex:0 0 auto;
     display:grid; place-items:center; cursor:pointer; background:var(--surface-card); color:var(--on-accent); }
@@ -529,6 +533,8 @@
   .qi-r { font-size:11px; color:var(--text-tertiary); margin-top:2px; display:flex; align-items:center; gap:3px; }
   .qi-iu { font-size:10.5px; color:var(--text-tertiary); flex:0 0 auto; font-weight:700; }
   .q-empty { text-align:center; color:var(--text-tertiary); font-size:12px; padding:24px 0; }
+  .q-drop-hint { text-align:center; color:var(--text-tertiary); font-size:11px; padding:8px 0; opacity:0; transition:opacity .15s; }
+  .q-col.drag-over .q-drop-hint { opacity:1; }
 
   /* module hero header (per-type summary) */
   .hero { display:flex; align-items:center; gap: 13px; padding: 12px 16px; border-radius: var(--radius-tile);
@@ -1809,7 +1815,7 @@ function renderNotesBook(items){
     <div class="book-pages">${pages}</div></div>`;
 }
 
-/* 四象限视图：重要度(X) × 紧急度(Y) */
+/* 四象限视图：重要度(X→) × 紧急度(Y↑) */
 function renderQuadrantView(items){
   const qs={q1:[],q2:[],q3:[],q4:[]};
   items.forEach(x=>{
@@ -1817,26 +1823,27 @@ function renderQuadrantView(items){
     const q = imp>=3&&urg>=3?'q1':imp>=3&&urg<3?'q2':imp<3&&urg>=3?'q3':'q4';
     qs[q].push(x);
   });
-  const qCard=(q,label,color)=>`<div class="q-col">
+  const qCard=(q,label,color)=>`<div class="q-col" data-q="${q}">
     <div class="q-head" style="border-left-color:${color}"><span class="qh-l">${label}</span><span class="qh-n">${qs[q].length}</span></div>
     <div class="q-items">${qs[q].length?qs[q].map(x=>{
       const urg=x.urgency&&remindUrgency(x.remindAt,x.repeat)?remindUrgency(x.remindAt,x.repeat):null;
-      return `<div class="q-item ${x.done?'done':''}" data-edit="${x.id}">
+      return `<div class="q-item ${x.done?'done':''}" draggable="true" data-edit="${x.id}" data-id="${x.id}">
         <div class="qi-chk js-chk ${x.done?'on':''}" data-id="${x.id}">${x.done?icon("check",11,2):''}</div>
         <div class="qi-body"><div class="qi-t">${esc(x.title)}</div>
           ${x.remindAt?`<div class="qi-r">${icon("bell",10)} ${x.repeat==="weekly"?(remindUrgency(x.remindAt,x.repeat)?.label||fmtTime(x.remindAt)):fmtTime(x.remindAt)}</div>`:''}</div>
         <div class="qi-iu" title="重要${x.importance||3}/紧急${x.urgency||3}">I${x.importance||3}·U${x.urgency||3}</div>
       </div>`;
     }).join(""):`<div class="q-empty">暂无</div>`}</div>
+    <div class="q-drop-hint">拖到此处</div>
   </div>`;
   return `<div class="quad-view">
-    <div class="quad-axis-y">↑ 度急紧</div>
-    <div class="quad-axis-x">重要度 →</div>
+    <div class="quad-axis-y">↑ 紧急</div>
+    <div class="quad-axis-x">重要 →</div>
     <div class="quad-grid">
-      ${qCard('q2','Q2 · 重要不紧急','#5f7a99')}
+      ${qCard('q3','Q3 · 不重要紧急','#bd8a4e')}
       ${qCard('q1','Q1 · 重要紧急','#c25d4f')}
       ${qCard('q4','Q4 · 不重要不紧急','#9a958a')}
-      ${qCard('q3','Q3 · 不重要紧急','#bd8a4e')}
+      ${qCard('q2','Q2 · 重要不紧急','#5f7a99')}
     </div>
   </div>`;
 }
@@ -1920,6 +1927,34 @@ function wireModule(key){ const m=modOf(key);
   $("#screen").querySelectorAll("[data-edit]").forEach(el=>el.onclick=()=>openEditor(key,(data[key]).find(i=>i.id==el.dataset.edit)));
   $("#screen").querySelectorAll(".js-del").forEach(el=>el.onclick=e=>{ e.stopPropagation(); confirmDelete(key, el.dataset.id); });
   $("#screen").querySelectorAll(".js-pin").forEach(el=>el.onclick=e=>{ e.stopPropagation(); const x=(data[key]).find(i=>i.id==el.dataset.id); x.pinned=!x.pinned; persist(); });
+  // 四象限拖拽：拖动 q-item 到不同象限，自动修改 importance/urgency
+  const dragItems=$("#screen").querySelectorAll(".q-item[draggable]");
+  const dropCols=$("#screen").querySelectorAll(".q-col[data-q]");
+  let dragId=null;
+  dragItems.forEach(el=>{
+    el.addEventListener("dragstart",e=>{
+      dragId=el.dataset.id;
+      el.classList.add("dragging");
+      e.dataTransfer.effectAllowed="move";
+      e.dataTransfer.setData("text/plain",el.dataset.id);
+    });
+    el.addEventListener("dragend",()=>{ el.classList.remove("dragging"); dropCols.forEach(c=>c.classList.remove("drag-over")); });
+  });
+  dropCols.forEach(col=>{
+    col.addEventListener("dragover",e=>{ e.preventDefault(); e.dataTransfer.dropEffect="move"; col.classList.add("drag-over"); });
+    col.addEventListener("dragleave",()=>col.classList.remove("drag-over"));
+    col.addEventListener("drop",e=>{
+      e.preventDefault(); col.classList.remove("drag-over");
+      const id=e.dataTransfer.getData("text/plain")||dragId; if(!id) return;
+      const x=(data.todo||[]).find(i=>String(i.id)===String(id)); if(!x) return;
+      const q=col.dataset.q;
+      /* Q1:重要+紧急 Q2:重要+不紧急 Q3:不重要+紧急 Q4:不重要+不紧急 */
+      const newVals={q1:{i:5,u:5},q2:{i:5,u:1},q3:{i:1,u:5},q4:{i:1,u:1}}[q];
+      if(!newVals) return;
+      x.importance=newVals.i; x.urgency=newVals.u;
+      persist();
+    });
+  });
 }
 
 /* ---------- EDITOR MODAL (per type) ---------- */
@@ -1932,7 +1967,7 @@ function openEditor(key,item){
       <div class="field"><label>优先级</label><div class="seg" id="f-prio">${(m.priorities||[]).map(p=>`<div class="opt ${p.key===d.priority?'on':''}" data-v="${p.key}">${p.label}</div>`).join("")}</div></div>
       <div class="field"><label>四象限定位（点击格子）</label>
         <div class="quad-picker" id="quadPicker">
-          <div class="qp-y">↑ 急紧</div>
+          <div class="qp-y">↑ 紧急</div>
           <div class="qp-grid">
             ${[5,4,3,2,1].map(r=>[1,2,3,4,5].map(c=>{
               const q = c>=3&&r>=3?'q1':c>=3&&r<3?'q2':c<3&&r>=3?'q3':'q4';
