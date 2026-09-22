@@ -1222,9 +1222,9 @@ const store = {
 let data = store.load();
 let view = "home";
 let searchQ = "";
-let todoSort = "default";   // default | time | importance | urgency | score
-let todoView = "list";      // list | quadrant
-let notesView = "book";     // book | list
+let todoSort = localStorage.getItem("__todoSort") || "time";   // default | time | importance | urgency | score
+let todoView = localStorage.getItem("__todoView") || "list";    // list | quadrant
+let notesView = localStorage.getItem("__notesView") || "book"; // book | list
 let pomo = { running:false, remain:25*60, total:25*60, elapsed:0, task:"" };   // 番茄钟状态（内存态，跨渲染保留）
 let clockTimer = null;                                       // 全局秒级心跳（时钟 + 番茄钟）
 function persist(){ store.save(); render(); }
@@ -1662,9 +1662,9 @@ function renderModule(key){
   s.addEventListener("input",()=>{ if(!composing) refresh(); });
   $("#btn-new").onclick=()=>openEditor(key,null);
   // 待办排序 + 视图切换
-  const sortSeg=$("#sort-seg"); if(sortSeg) sortSeg.querySelectorAll(".opt").forEach(o=>o.onclick=()=>{ todoSort=o.dataset.v; renderModule(key); });
-  const viewSeg=$("#view-seg"); if(viewSeg) viewSeg.querySelectorAll(".opt").forEach(o=>o.onclick=()=>{ todoView=o.dataset.v; renderModule(key); });
-  const notesViewSeg=$("#notes-view-seg"); if(notesViewSeg) notesViewSeg.querySelectorAll(".opt").forEach(o=>o.onclick=()=>{ notesView=o.dataset.v; renderModule(key); });
+  const sortSeg=$("#sort-seg"); if(sortSeg) sortSeg.querySelectorAll(".opt").forEach(o=>o.onclick=()=>{ todoSort=o.dataset.v; localStorage.setItem("__todoSort",todoSort); renderModule(key); });
+  const viewSeg=$("#view-seg"); if(viewSeg) viewSeg.querySelectorAll(".opt").forEach(o=>o.onclick=()=>{ todoView=o.dataset.v; localStorage.setItem("__todoView",todoView); renderModule(key); });
+  const notesViewSeg=$("#notes-view-seg"); if(notesViewSeg) notesViewSeg.querySelectorAll(".opt").forEach(o=>o.onclick=()=>{ notesView=o.dataset.v; localStorage.setItem("__notesView",notesView); renderModule(key); });
   wireModule(key);
 }
 
