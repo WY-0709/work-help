@@ -170,47 +170,96 @@
   [data-theme="retro"] .rname { font-weight:700; }
   [data-theme="retro"] .badge, [data-theme="retro"] .auto-badge { border-radius:999px; font-weight:700; }
   [data-theme="retro"] .sec-title::before { border-radius:3px; }
-  /* ===== 主题 3：烈焰红 Crimson —— 酒红侧栏 · 暖米色底 · 朱砂强调 ===== */
+  /* ===== 主题 3：赛博朋克 Cyberpunk —— 霓虹光 · 暗夜底 · 网格线 ===== */
   [data-theme="crimson"] {
-    --page-bg: #f7edea;
-    --surface-card: #fffaf8;
-    --surface-nested: #f3e3df;
-    --border: #e6c9c2;
-    --border-input: #d9b3ab;
-    --text: #3a1f1c;
-    --text-secondary: #8a5a52;
-    --text-tertiary: #b99088;
-    --accent: #b8342b;
-    --accent-muted: #f6dcd9;
-    --on-accent: #fffaf8;
-    --module-1: #b8342b;
-    --module-2: #2d6e6b;
-    --module-3: #c9922e;
-    --module-4: #9c2a22;
-    --module-5: #7a4a6a;
-    --danger: #9c2a22;
-    --danger-muted: #f3d8d5;
-    --drawer-bg: #5c1a16;
-    --drawer-bg-top: #7a2420;
-    --drawer-text: #f7edea;
-    --drawer-text-mute: rgba(247,237,234,.55);
-    --drawer-hover: rgba(247,237,234,.08);
-    --drawer-active: rgba(247,237,234,.16);
-    --radius-control: 8px;
-    --radius-tile: 12px;
-    --radius-card: 16px;
-    --radius-sheet: 22px;
-    --shadow-card: 0 2px 0 rgba(184,52,43,.10), 0 8px 22px rgba(58,31,28,.08);
-    --shadow-overlay: 0 16px 42px rgba(58,31,28,.22);
-    --font: Georgia, "Noto Serif SC", "Songti SC", "PingFang SC", "Microsoft YaHei", serif;
-    --page-bg-extra: radial-gradient(circle at 12% 10%, rgba(184,52,43,.10), transparent 32%), radial-gradient(circle at 88% 12%, rgba(201,146,46,.10), transparent 30%), radial-gradient(circle at 70% 92%, rgba(122,74,106,.08), transparent 36%);
+    --page-bg: #0a0a12;
+    --surface-card: rgba(18,18,30,.85);
+    --surface-nested: rgba(28,28,44,.7);
+    --border: rgba(0,240,255,.18);
+    --border-input: rgba(0,240,255,.35);
+    --text: #e0f8ff;
+    --text-secondary: #8ab8c8;
+    --text-tertiary: #5a7888;
+    --accent: #ff006e;
+    --accent-muted: rgba(255,0,110,.18);
+    --on-accent: #0a0a12;
+    --module-1: #00f0ff;
+    --module-2: #ff006e;
+    --module-3: #c6ff00;
+    --module-4: #7c3aed;
+    --module-5: #ff9500;
+    --danger: #ff006e;
+    --danger-muted: rgba(255,0,110,.16);
+    --drawer-bg: #06060e;
+    --drawer-bg-top: #0e0e1a;
+    --drawer-text: #e0f8ff;
+    --drawer-text-mute: rgba(224,248,255,.5);
+    --drawer-hover: rgba(0,240,255,.08);
+    --drawer-active: rgba(255,0,110,.2);
+    --shadow-card: 0 0 0 1px rgba(0,240,255,.06) inset, 0 4px 20px rgba(0,240,255,.08), 0 0 30px rgba(255,0,110,.04);
+    --shadow-overlay: 0 0 0 1px rgba(0,240,255,.2), 0 20px 60px rgba(0,0,0,.6), 0 0 40px rgba(0,240,255,.12);
+    --font: "JetBrains Mono", "Fira Code", Consolas, "PingFang SC", "Microsoft YaHei", monospace;
+    --radius-control: 6px;
+    --radius-tile: 10px;
+    --radius-card: 14px;
+    --radius-sheet: 18px;
+    --page-bg-extra:
+      radial-gradient(ellipse 60% 50% at 15% 8%, rgba(255,0,110,.12), transparent 50%),
+      radial-gradient(ellipse 55% 45% at 85% 15%, rgba(0,240,255,.1), transparent 50%),
+      radial-gradient(ellipse 50% 50% at 60% 90%, rgba(124,58,237,.1), transparent 50%),
+      linear-gradient(180deg, #0a0a12 0%, #08080f 100%);
   }
-  [data-theme="crimson"] body { background-image: var(--page-bg-extra); }
-  [data-theme="crimson"] .rec { border-width:1px; }
-  [data-theme="crimson"] .rname { font-weight:700; letter-spacing:-.01em; }
-  [data-theme="crimson"] .badge { font-weight:700; }
-  [data-theme="crimson"] .navi.active { box-shadow: inset 0 0 0 1px rgba(247,237,234,.35); }
-  [data-theme="crimson"] .pomo .pctl button { border-color:rgba(255,250,248,.22); background:rgba(255,250,248,.08); color:#f4f3f0; }
+  [data-theme="crimson"] body {
+    background-image: var(--page-bg-extra);
+    background-attachment: fixed;
+  }
+  [data-theme="crimson"] body::after {
+    content:''; position:fixed; inset:0; z-index:-1; pointer-events:none; opacity:.07;
+    background-image:
+      linear-gradient(rgba(0,240,255,.4) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,240,255,.4) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+  [data-theme="crimson"] .rec, [data-theme="crimson"] .card, [data-theme="crimson"] .panel, [data-theme="crimson"] .modcard, [data-theme="crimson"] .side-card, [data-theme="crimson"] .mini { backdrop-filter: blur(8px); }
+  [data-theme="crimson"] .rname { font-weight:700; text-shadow: 0 0 12px rgba(0,240,255,.3); }
+  [data-theme="crimson"] .badge { font-weight:700; border:1px solid rgba(0,240,255,.25); }
+  [data-theme="crimson"] .navi.active {
+    box-shadow: inset 0 0 0 1px rgba(0,240,255,.4), 0 0 12px rgba(0,240,255,.15);
+    background: rgba(0,240,255,.06);
+  }
+  [data-theme="crimson"] .navi:hover { text-shadow: 0 0 8px rgba(0,240,255,.4); }
+  [data-theme="crimson"] .pomo .pctl button { border-color:rgba(0,240,255,.22); background:rgba(0,240,255,.06); color:#e0f8ff; }
+  [data-theme="crimson"] .btn { box-shadow: 0 0 20px rgba(255,0,110,.3); }
+  [data-theme="crimson"] .ts-opt[data-theme="crimson"] .ts-dot { box-shadow: 0 0 8px #ff006e; }
+  [data-theme="crimson"] input, [data-theme="crimson"] textarea { color:#e0f8ff; }
+  [data-theme="crimson"] input:focus, [data-theme="crimson"] textarea:focus {
+    border-color: rgba(0,240,255,.5);
+    box-shadow: 0 0 0 2px rgba(0,240,255,.15), 0 0 20px rgba(0,240,255,.1);
+  }
+  [data-theme="crimson"] .hero { border-color: rgba(0,240,255,.15); box-shadow: 0 0 30px rgba(0,240,255,.05), var(--shadow-card); }
+  [data-theme="crimson"] .seg .opt.on { box-shadow: 0 0 12px rgba(255,0,110,.3); }
+  [data-theme="crimson"] .toast { box-shadow: 0 0 0 1px rgba(0,240,255,.2), 0 0 30px rgba(0,240,255,.08), var(--shadow-overlay); }
+  [data-theme="crimson"] .modal { border:1px solid rgba(0,240,255,.2); box-shadow: 0 0 0 1px rgba(0,240,255,.1), 0 0 60px rgba(0,240,255,.06), 0 24px 60px rgba(0,0,0,.5); }
+  [data-theme="crimson"] .hc-card { border-color: rgba(0,240,255,.15); }
+  [data-theme="crimson"] .hc-card::before { height:2px; background:linear-gradient(90deg, var(--hc-color, #00f0ff), transparent 60%, rgba(255,0,110,.3) 80%, transparent); }
+  [data-theme="crimson"] .qbtn .e, [data-theme="crimson"] .modcard .mc-ic { background:rgba(0,240,255,.06) !important; }
+  [data-theme="crimson"] .qbtn .l, [data-theme="crimson"] .modcard .mc-name, [data-theme="crimson"] .modcard .mc-main { color:#e0f8ff; }
+  [data-theme="crimson"] .cal-cell .cev.todo { background:rgba(0,240,255,.12); color:#00f0ff; border-color:rgba(0,240,255,.2); border-left-color:#00f0ff; }
+  [data-theme="crimson"] .cal-cell .cev.todo.pri-P0 { background:rgba(255,0,110,.12); color:#ff006e; border-left-color:#ff006e; }
+  [data-theme="crimson"] .cal-cell .cev.todo.pri-P1 { background:rgba(255,149,0,.12); color:#ff9500; border-left-color:#ff9500; }
+  [data-theme="crimson"] .cal-cell .cev.todo.pri-P2 { background:rgba(124,58,237,.12); color:#a78bfa; border-left-color:#7c3aed; }
+  [data-theme="crimson"] .cal-cell .cev.goal { background:rgba(198,255,0,.1); color:#c6ff00; border-left:3px solid #c6ff00; }
+  [data-theme="crimson"] .cal-cell .cev.checkin { background:rgba(0,240,255,.12); color:#00f0ff; border-left:3px solid #00f0ff; }
+  [data-theme="crimson"] .cal-cell .cev.note { background:rgba(124,58,237,.12); color:#a78bfa; border-left:3px solid #7c3aed; }
+  [data-theme="crimson"] .cal-cell .cev.review { background:rgba(255,0,110,.12); color:#ff006e; border-left:3px solid #ff006e; }
+  [data-theme="crimson"] .ov2-stat .s-v { color:#e0f8ff; text-shadow: 0 0 10px rgba(0,240,255,.2); }
+  [data-theme="crimson"] .auto-extract-banner { background:linear-gradient(140deg, rgba(0,240,255,.85), rgba(124,58,237,.85)); color:#0a0a12; }
+  [data-theme="crimson"] .auto-extract-banner .ab-act button { background:rgba(0,0,0,.2); color:#e0f8ff; }
+  [data-theme="crimson"] .hc-streak svg { color:#ff9500; text-shadow:0 0 8px rgba(255,149,0,.3); }
+  [data-theme="crimson"] .cal-day-num { color:#e0f8ff; }
+  [data-theme="crimson"] .cal-week-headers th { color:var(--text-tertiary); }
+  [data-theme="crimson"] .q-col { border-color: rgba(0,240,255,.12); }
+  [data-theme="crimson"] .q-item { background:rgba(0,240,255,.04); }
   /* ===== 主题 4：极简黑白 Mono —— 粗野主义：纯黑粗边 + 无阴影 + 大写标签 ===== */
   [data-theme="mono"] {
     --page-bg: #fafafa;
@@ -475,6 +524,8 @@
   [data-theme="starry"] .modcard .mc-main, [data-theme="crimson"] .modcard .mc-main { color:#eef2fb; }
   [data-theme="starry"] .modcard .mc-extra, [data-theme="crimson"] .modcard .mc-extra { color:var(--text-secondary); }
   [data-theme="starry"] .modcard .mc-ic, [data-theme="crimson"] .modcard .mc-ic { background:rgba(255,255,255,.08) !important; }
+  [data-theme="starry"] .qbtn .l, [data-theme="crimson"] .qbtn .l { color:#e0f8ff; }
+  [data-theme="starry"] .toast, [data-theme="crimson"] .toast { background:var(--surface-card); }
 
   /* trend panel */
   .panel { background: var(--surface-card); border: 1px solid var(--border); border-radius: var(--radius-card); box-shadow: var(--shadow-card); padding:18px; }
@@ -1134,7 +1185,7 @@
       <div class="ts-options">
         <button class="ts-opt" data-theme="paper" title="报刊编辑"><span class="ts-dot" style="background:#f5f0e1;border:1px solid #2d4a3e"></span></button>
         <button class="ts-opt" data-theme="retro" title="复古珊瑚"><span class="ts-dot" style="background:#fdf6e9;border:1px solid #e07a5f"></span></button>
-        <button class="ts-opt" data-theme="crimson" title="烈焰红"><span class="ts-dot" style="background:#b8342b;border:1px solid #5c1a16"></span></button>
+        <button class="ts-opt" data-theme="crimson" title="赛博朋克"><span class="ts-dot" style="background:linear-gradient(135deg,#ff006e,#00f0ff);border:1px solid #ff006e"></span></button>
         <button class="ts-opt" data-theme="starry" title="星图集"><span class="ts-dot" style="background:#0b1020;border:1px solid #7c9cff"></span></button>
       </div>
     </div>
@@ -3347,7 +3398,7 @@ function attr(s){ return esc(s).replace(/"/g,'&quot;'); }
 const THEMES = {
   paper:    { name:"报刊编辑", desc:"深绿侧栏 · 羊皮纸底 · 衬线标题" },
   retro:    { name:"复古珊瑚", desc:"珊瑚青撞色 · 圆点底 · 圆润亲切" },
-  crimson:  { name:"烈焰红",   desc:"酒红侧栏 · 暖米色底 · 朱砂强调" },
+  crimson:  { name:"赛博朋克", desc:"霓虹光 · 暗夜底 · 网格线 · 霓虹色" },
   starry:   { name:"星图集",   desc:"银河星图底 · 琉璃卡片 · 高对比" }
 };
 function applyTheme(theme){
