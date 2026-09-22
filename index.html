@@ -108,6 +108,25 @@
   [data-theme="starry"] .rec, [data-theme="starry"] .card, [data-theme="starry"] .panel, [data-theme="starry"] .modcard, [data-theme="starry"] .side-card, [data-theme="starry"] .mini { backdrop-filter: blur(6px); }
   [data-theme="starry"] .rname { font-weight:700; letter-spacing:-.01em; }
   [data-theme="starry"] .navi.active { box-shadow: inset 0 0 0 1px rgba(124,156,255,.5); }
+  /* 暗色主题：日历事件、横幅等硬编码深色文字修正 */
+  [data-theme="starry"] .cal-cell .cev.todo { background:rgba(90,209,160,.15); color:#5ad1a0; border-color:rgba(90,209,160,.25); border-left-color:#5ad1a0; }
+  [data-theme="starry"] .cal-cell .cev.todo.pri-P0 { background:rgba(255,122,156,.15); color:#ff7a9c; border-color:rgba(255,122,156,.25); border-left-color:#ff7a9c; }
+  [data-theme="starry"] .cal-cell .cev.todo.pri-P1 { background:rgba(245,201,107,.15); color:#f5c96b; border-color:rgba(245,201,107,.25); border-left-color:#f5c96b; }
+  [data-theme="starry"] .cal-cell .cev.todo.pri-P2 { background:rgba(124,156,255,.15); color:#7c9cff; border-color:rgba(124,156,255,.25); border-left-color:#7c9cff; }
+  [data-theme="starry"] .cal-cell .cev.goal { background:rgba(124,156,255,.15); color:#7c9cff; border-color:rgba(124,156,255,.25); border-left:3px solid #7c9cff; }
+  [data-theme="starry"] .cal-cell .cev.checkin { background:rgba(245,201,107,.15); color:#f5c96b; border-color:rgba(245,201,107,.25); border-left:3px solid #f5c96b; }
+  [data-theme="starry"] .cal-cell .cev.note { background:rgba(195,155,255,.15); color:#c39bff; border-color:rgba(195,155,255,.25); border-left:3px solid #c39bff; }
+  [data-theme="starry"] .cal-cell .cev.review { background:rgba(255,122,156,.15); color:#ff7a9c; border-color:rgba(255,122,156,.25); border-left:3px solid #ff7a9c; }
+  [data-theme="starry"] .ov2-stat .s-v { color:#eef2fb; }
+  [data-theme="starry"] .auto-extract-banner { background:linear-gradient(140deg,rgba(90,209,160,.85),rgba(74,106,63,.85)); color:#eef2fb; }
+  [data-theme="starry"] .auto-extract-banner .ab-act button { background:rgba(255,255,255,.15); color:#eef2fb; }
+  [data-theme="starry"] .pomo .pctl button { border-color:rgba(238,242,251,.22); background:rgba(238,242,251,.08); color:#eef2fb; }
+  [data-theme="starry"] .hc-streak svg { color:#f5a040; }
+  [data-theme="starry"] .cal-day-num { color:#eef2fb; }
+  [data-theme="starry"] .cal-day-other .cal-day-num { color:var(--text-tertiary); }
+  [data-theme="starry"] .cal-week-headers th { color:var(--text-tertiary); }
+  [data-theme="starry"] input, [data-theme="starry"] textarea { color:#eef2fb; }
+  [data-theme="starry"] .toast { background:var(--surface-card); color:#eef2fb; }
   /* ===== 主题 2：复古珊瑚 Retro —— 珊瑚+青绿撞色 · 圆点底 · 圆润亲切 ===== */
   [data-theme="retro"] {
     --page-bg: #fdf6e9;
@@ -191,6 +210,7 @@
   [data-theme="crimson"] .rname { font-weight:700; letter-spacing:-.01em; }
   [data-theme="crimson"] .badge { font-weight:700; }
   [data-theme="crimson"] .navi.active { box-shadow: inset 0 0 0 1px rgba(247,237,234,.35); }
+  [data-theme="crimson"] .pomo .pctl button { border-color:rgba(255,250,248,.22); background:rgba(255,250,248,.08); color:#f4f3f0; }
   /* ===== 主题 4：极简黑白 Mono —— 粗野主义：纯黑粗边 + 无阴影 + 大写标签 ===== */
   [data-theme="mono"] {
     --page-bg: #fafafa;
@@ -312,7 +332,7 @@
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
-    background: var(--page-bg); color: var(--text); font-family: var(--font); font-size: 14px; line-height: 1.5;
+    background: var(--page-bg); color: var(--text); font-family: var(--font); font-style: var(--font-style, normal); font-size: 14px; line-height: 1.5;
     -webkit-font-smoothing: antialiased; min-height: 100vh; min-width: 1000px;
   }
   body::before { content:""; position:fixed; inset:0; z-index:-1; pointer-events:none;
@@ -1115,10 +1135,11 @@
       <span class="ts-label">字体</span>
       <div class="ts-options font-opts">
         <button class="fs-opt active" data-font="default" title="跟随主题">Aa</button>
-        <button class="fs-opt" data-font="serif" title="衬线" style="font-family:Georgia,serif">宋</button>
-        <button class="fs-opt" data-font="sans" title="无衬线" style="font-family:'PingFang SC',sans-serif">黑</button>
-        <button class="fs-opt" data-font="mono" title="等宽" style="font-family:'JetBrains Mono',Consolas,monospace">码</button>
-        <button class="fs-opt" data-font="hand" title="手写" style="font-family:'Ma Shan Zheng','Kaiti SC',cursive">楷</button>
+        <button class="fs-opt" data-font="songti" title="宋体" style="font-family:'Noto Serif SC','Songti SC','Source Han Serif SC','SimSun',serif">宋</button>
+        <button class="fs-opt" data-font="kaiti" title="楷体" style="font-family:'Kaiti SC','STKaiti','楷体','KaiTi','BiauKai',cursive">楷</button>
+        <button class="fs-opt" data-font="yahei" title="微软雅黑" style="font-family:'Microsoft YaHei','微软雅黑','PingFang SC',sans-serif">雅</button>
+        <button class="fs-opt" data-font="pingfang" title="苹方" style="font-family:'PingFang SC','-apple-system',system-ui,sans-serif">苹</button>
+        <button class="fs-opt" data-font="italic" title="艺术斜体" style="font-family:'Georgia','Noto Serif SC','Songti SC',serif;font-style:italic">斜</button>
       </div>
     </div>
     <div class="foot" id="foot">数据存本机浏览器 · 自动提取任务 · 钉钉轻量推送</div>
@@ -3348,19 +3369,23 @@ initThemeSwitcher();
 
 /* ---------- 字体切换 ---------- */
 const FONT_STACKS = {
-  default: "",
-  serif:  'Georgia, "Noto Serif SC", "Songti SC", "Source Han Serif SC", "PingFang SC", serif',
-  sans:   '"PingFang SC", "Microsoft YaHei", -apple-system, system-ui, "Helvetica Neue", Arial, sans-serif',
-  mono:   '"JetBrains Mono", "Fira Code", "Cascadia Code", Consolas, "SFMono-Regular", "PingFang SC", monospace',
-  hand:   '"Ma Shan Zheng", "Kaiti SC", "STKaiti", "楷体", "PingFang SC", cursive'
+  default:  "",
+  songti:   '"Noto Serif SC", "Songti SC", "Source Han Serif SC", "SimSun", serif',
+  kaiti:    '"Kaiti SC", "STKaiti", "楷体", "KaiTi", "BiauKai", "PingFang SC", cursive',
+  yahei:    '"Microsoft YaHei", "微软雅黑", "PingFang SC", -apple-system, system-ui, sans-serif',
+  pingfang: '"PingFang SC", -apple-system, system-ui, "Helvetica Neue", Arial, sans-serif',
+  italic:   'Georgia, "Noto Serif SC", "Songti SC", serif',
 };
-const FONT_NAMES = { default:"跟随主题", serif:"衬线", sans:"无衬线", mono:"等宽", hand:"手写" };
+const FONT_STYLES = { italic: "italic" };
+const FONT_NAMES = { default:"跟随主题", songti:"宋体", kaiti:"楷体", yahei:"微软雅黑", pingfang:"苹方", italic:"艺术斜体" };
 function applyFont(font){
   if(!FONT_STACKS[font]) font = "default";
   if(font === "default"){
     document.documentElement.style.removeProperty("--font");
+    document.documentElement.style.removeProperty("--font-style");
   } else {
     document.documentElement.style.setProperty("--font", FONT_STACKS[font]);
+    document.documentElement.style.setProperty("--font-style", FONT_STYLES[font]||"normal");
   }
   try { localStorage.setItem("wb-font", font); } catch(e){}
   document.querySelectorAll(".fs-opt").forEach(btn=>{
