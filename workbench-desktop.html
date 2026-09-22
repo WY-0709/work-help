@@ -467,7 +467,14 @@
   .qbtn .e { position:relative; width:42px; height:42px; border-radius:12px; display:grid; place-items:center; flex:0 0 auto; }
   .qbtn .e .qplus { position:absolute; right:-3px; bottom:-3px; width:17px; height:17px; border-radius:50%;
     background: var(--accent); color:var(--on-accent); display:grid; place-items:center; border: 2px solid var(--surface-card); }
-  .qbtn .l { font-size:13.5px; font-weight:700; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .qbtn .l { font-size:13.5px; font-weight:700; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--text); }
+  [data-theme="starry"] .qbtn .e, [data-theme="crimson"] .qbtn .e { background:rgba(255,255,255,.08) !important; }
+  [data-theme="starry"] .qbtn .l, [data-theme="crimson"] .qbtn .l { color:#eef2fb; }
+  [data-theme="starry"] .modcard .mc-name, [data-theme="crimson"] .modcard .mc-name { color:#eef2fb; }
+  [data-theme="starry"] .modcard .mc-desc, [data-theme="crimson"] .modcard .mc-desc { color:var(--text-tertiary); }
+  [data-theme="starry"] .modcard .mc-main, [data-theme="crimson"] .modcard .mc-main { color:#eef2fb; }
+  [data-theme="starry"] .modcard .mc-extra, [data-theme="crimson"] .modcard .mc-extra { color:var(--text-secondary); }
+  [data-theme="starry"] .modcard .mc-ic, [data-theme="crimson"] .modcard .mc-ic { background:rgba(255,255,255,.08) !important; }
 
   /* trend panel */
   .panel { background: var(--surface-card); border: 1px solid var(--border); border-radius: var(--radius-card); box-shadow: var(--shadow-card); padding:18px; }
