@@ -992,6 +992,30 @@
   .pomo .pomo-task:focus { border-color:rgba(230,184,119,.5); }
   .pomo .pomo-task::placeholder { color:rgba(244,243,240,.35); }
   .pomo .pomo-task[readonly] { opacity:.6; cursor:not-allowed; }
+  /* 专注番茄独立页面 */
+  .pomo-page-grid { display:grid; grid-template-columns:1fr 340px; gap:16px; margin-bottom:20px; }
+  .pomo-page-grid .pomo-main { min-width:0; }
+  .pomo-page-grid .pomo-side { display:flex; flex-direction:column; gap:16px; }
+  @media(max-width:900px){ .pomo-page-grid{ grid-template-columns:1fr; } }
+  .pomo-weekbar { display:flex; align-items:flex-end; justify-content:space-between; height:120px; padding:8px 4px 0; gap:6px; }
+  .pomo-wd { display:flex; flex-direction:column; align-items:center; flex:1; gap:6px; }
+  .pomo-wbar { width:100%; max-width:28px; min-height:3px; border-radius:6px 6px 2px 2px; background:linear-gradient(180deg, var(--accent), var(--module-1)); transition:height .3s ease; }
+  .pomo-wlabel { font-size:11px; color:var(--text-tertiary); }
+  .pomo-sessions { display:flex; flex-direction:column; gap:8px; max-height:300px; overflow-y:auto; padding-right:4px; }
+  .pomo-sess { display:flex; align-items:center; gap:10px; padding:8px 10px; background:var(--surface-nested); border-radius:10px; }
+  .pomo-sess .ps-min { font-size:20px; font-weight:800; color:var(--accent); min-width:36px; }
+  .pomo-sess .ps-min small { font-size:12px; opacity:.6; }
+  .pomo-sess .ps-task { flex:1; font-size:13px; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .pomo-sess .ps-date { font-size:11px; color:var(--text-tertiary); }
+  .pomo-tips { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+  .pomo-tip { display:flex; align-items:center; gap:8px; padding:14px 16px; background:var(--surface-card); border:1px solid var(--border); border-radius:var(--radius-card); box-shadow:var(--shadow-card); font-size:13px; color:var(--text-secondary); }
+  .pomo-tip .pt-num { width:24px; height:24px; border-radius:50%; background:var(--accent); color:var(--on-accent); display:grid; place-items:center; font-size:12px; font-weight:800; flex:0 0 auto; }
+  @media(max-width:700px){ .pomo-tips{ grid-template-columns:1fr 1fr; } }
+  .pomo-mini { transition:transform .2s, box-shadow .2s; }
+  .pomo-mini:hover { transform:translateY(-2px); }
+  .pomo-mini-bar { height:6px; background:var(--surface-nested); border-radius:3px; overflow:hidden; margin:10px 0 6px; }
+  .pomo-mini-bar .pmb-fill { height:100%; background:linear-gradient(90deg, var(--accent), var(--module-1)); border-radius:3px; transition:width .3s ease; }
+  .pomo-mini-text { font-size:12px; color:var(--text-tertiary); margin-top:2px; }
   /* 专注完成弹窗 */
   .pomo-overlay { position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,.45); display:flex; align-items:center; justify-content:center; backdrop-filter:blur(4px); }
   .pomo-dialog { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:32px 28px 24px;
@@ -1326,6 +1350,7 @@ const ICONS = {
   crown:'<path d="M4 8l4 4 4-8 4 8 4-4-2 12H6z"/>',
   trophy:'<path d="M7 4h10v6a5 5 0 0 1-10 0z"/><path d="M7 6H4v2a3 3 0 0 0 3 3M17 6h3v2a3 3 0 0 1-3 3M9 15v5M15 15v5M8 20h8"/>',
   diamond:'<path d="M3 8l9-5 9 5-9 13z"/><path d="M3 8h18M12 3v18"/>',
+  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
 };
 function icon(name, size=22, sw=1.7){
   const path = ICONS[name] || ICONS.grid;
@@ -1563,7 +1588,18 @@ function pomoTileHTML(){
       <div class="ps"><div class="pv">${todaySessions.length}</div><div class="pl">今日轮次</div></div></div></div>`;
 }
 
-/* 心情趋势折线（复用 trend） */
+/* 首页紧凑版番茄钟卡片（点击跳转独立页面） */
+function pomoMiniHTML(){
+  const p=data.__pomo||{count:0,min:0,sessions:[]};
+  const todaySessions=(p.sessions||[]).filter(s=>s.date===isoToday());
+  const curMin=Math.round(pomo.total/60);
+  return `<div class="tile b4 pomo-mini" data-go="pomo" style="cursor:pointer">
+    <div class="tile-h"><span class="tic">${icon("clock",16)}</span><div class="tt"><span class="en">POMODORO · FOCUS</span><span class="zh">专注番茄</span></div><span class="r">${icon("chevron",16,2)}</span></div>
+    <div class="spend-sum"><span class="spend-total">${p.count}</span><span class="spend-cap">今日番茄 · ${p.min} 分钟 · ${todaySessions.length} 轮次</span></div>
+    <div class="pomo-mini-bar"><div class="pmb-fill" style="width:${Math.min(100,pomo.running?(pomo.elapsed/pomo.total*100):0)}%"></div></div>
+    <div class="pomo-mini-text">${pomo.running?`专注中 · ${curMin}分钟`:`点击开始专注 · ${curMin}分钟`}</div>
+  </div>`;
+}
 function trendTileHTML(){
   const series=CONFIG.trend.series(data); const has=series.length>0;
   const avg=has?Math.round(series.reduce((a,b)=>a+b,0)/series.length):0;
@@ -1649,7 +1685,7 @@ function renderHome(){
     <div class="bento">${habitTileHTML()}${todoTileHTML()}</div>
 
     ${grp("专注与状态","FOCUS&nbsp;&nbsp;&&nbsp;&nbsp;MOOD")}
-    <div class="bento">${pomoTileHTML()}${trendTileHTML()}</div>
+    <div class="bento">${pomoMiniHTML()}${trendTileHTML()}</div>
 
     ${grp("提醒与成长","REMINDERS&nbsp;&nbsp;&&nbsp;&nbsp;GROWTH")}
     <div class="bento">${remindTileHTML()}${notesTileHTML()}${goalsTileHTML()}</div>`;
@@ -1660,6 +1696,7 @@ function renderHome(){
 function wireHome(){
   $("#screen").querySelectorAll("[data-open]").forEach(el=>el.onclick=()=>go(el.dataset.open));
   $("#screen").querySelectorAll("[data-quick]").forEach(el=>el.onclick=()=>{ go(el.dataset.quick); openEditor(el.dataset.quick,null); });
+  $("#screen").querySelectorAll("[data-go]").forEach(el=>el.onclick=()=>go(el.dataset.go));
   const find=el=>(data[el.dataset.mkey]||[]).find(i=>i.id==el.dataset.id);
   // 就地打卡 / 完成
   $("#screen").querySelectorAll(".js-pin-chk").forEach(el=>el.onclick=e=>{
@@ -1677,6 +1714,41 @@ function wireHome(){
     const d=el.dataset.day; x.log=x.log||{}; x.log[d]?delete x.log[d]:x.log[d]=true; persist();
   });
   // 番茄钟控制
+  const tg=$("#pomo-toggle"); if(tg) tg.onclick=()=>{ pomo.running=!pomo.running; pomoUpdate(); };
+  const rs=$("#pomo-reset"); if(rs) rs.onclick=()=>{ pomo.running=false; pomo.remain=pomo.total; pomo.elapsed=0; pomoUpdate(); };
+  document.querySelectorAll(".pomo-dur").forEach(b=>b.onclick=()=>pomoSetDuration(+b.dataset.min));
+  const taskIn=$("#pomo-task"); if(taskIn) taskIn.oninput=()=>{ pomo.task=taskIn.value; };
+}
+
+/* ---------- 专注番茄独立页面 ---------- */
+function renderPomoPage(){
+  const p=data.__pomo||{count:0,min:0,sessions:[]};
+  const todaySessions=(p.sessions||[]).filter(s=>s.date===isoToday());
+  const allSessions=(p.sessions||[]).slice().reverse().slice(0,20);
+  // 按日期统计近7天
+  const days=[]; for(let i=6;i>=0;i--){ const d=new Date(); d.setDate(d.getDate()-i); const ds=d.toISOString().slice(0,10); const ss=(p.sessions||[]).filter(s=>s.date===ds); days.push({ds,min:ss.reduce((a,s)=>a+s.mins,0),cnt:ss.length}); }
+  const maxDay=Math.max(1,...days.map(d=>d.min));
+  const wd="日一二三四五六";
+  $("#screen").innerHTML=`<div class="header"><div><h2>专注番茄</h2><p>自由选择时长 · 记录专注内容 · 统计与趋势</p></div><div class="spacer"></div><span class="date-chip">${icon("clock",14)} ${dateStr()}</span></div>
+    <div class="pomo-page-grid">
+      <div class="pomo-main">${pomoTileHTML()}</div>
+      <div class="pomo-side">
+        <div class="tile b4"><div class="tile-h"><span class="tic">${icon("chart",16)}</span><div class="tt"><span class="en">WEEKLY FOCUS</span><span class="zh">近 7 天专注</span></div></div>
+          <div class="pomo-weekbar">${days.map(d=>`<div class="pomo-wd"><div class="pomo-wbar" style="height:${Math.round(d.min/maxDay*100)}px" title="${d.cnt}次 ${d.min}分钟"></div><div class="pomo-wlabel">${wd[new Date(d.ds).getDay()]}</div></div>`).join("")}</div>
+        </div>
+        <div class="tile b4"><div class="tile-h"><span class="tic">${icon("list",16)}</span><div class="tt"><span class="en">SESSION HISTORY</span><span class="zh">专注记录</span></div><span class="r">${(p.sessions||[]).length} 条</span></div>
+          ${allSessions.length?`<div class="pomo-sessions">${allSessions.map(s=>`<div class="pomo-sess"><span class="ps-min">${s.mins}<small>m</small></span><span class="ps-task">${esc(s.task||'专注')}</span><span class="ps-date">${s.date.slice(5)}</span></div>`).join("")}</div>`:`<div class="focus-empty">还没有专注记录。选择时长、写下任务、开始专注吧。</div>`}
+        </div>
+      </div>
+    </div>
+    <div class="sec-title">使用说明</div>
+    <div class="pomo-tips">
+      <div class="pomo-tip"><span class="pt-num">1</span><span>选择专注时长：15/25/45/60 分钟</span></div>
+      <div class="pomo-tip"><span class="pt-num">2</span><span>写下正在做的事（可选）</span></div>
+      <div class="pomo-tip"><span class="pt-num">3</span><span>点击开始专注，倒计时运行</span></div>
+      <div class="pomo-tip"><span class="pt-num">4</span><span>时间到后选择：计入专注 或 没有真的专注</span></div>
+    </div>`;
+  // Wire up pomo controls
   const tg=$("#pomo-toggle"); if(tg) tg.onclick=()=>{ pomo.running=!pomo.running; pomoUpdate(); };
   const rs=$("#pomo-reset"); if(rs) rs.onclick=()=>{ pomo.running=false; pomo.remain=pomo.total; pomo.elapsed=0; pomoUpdate(); };
   document.querySelectorAll(".pomo-dur").forEach(b=>b.onclick=()=>pomoSetDuration(+b.dataset.min));
@@ -2360,6 +2432,7 @@ function render(){
   else if(view==="auto") renderAutoExtract();
   else if(view==="dingtalk") renderDingTalk();
   else if(view==="external") renderExternal();
+  else if(view==="pomo") renderPomoPage();
   else renderModule(view);
 }
 
@@ -2370,6 +2443,7 @@ function buildNav(){
     .concat(CONFIG.modules.map(m=>`<div class="navi" data-go="${m.key}">${icon(m.icon,19)}${m.name}</div>`))
     .concat([
       `<div class="nav-sep">视图与集成</div>`,
+      `<div class="navi" data-go="pomo">${icon("clock",19)}专注番茄</div>`,
       `<div class="navi" data-go="external">${icon("send",19)}外部消息汇总</div>`,
       `<div class="navi" data-go="calendar">${icon("calendar",19)}日历视图</div>`,
       `<div class="navi" data-go="auto">${icon("sparkles",19)}自动提取</div>`,
