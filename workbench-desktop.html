@@ -657,6 +657,20 @@
   .hc-reward svg { color:var(--hc-color, var(--accent)); flex:0 0 auto; }
   .hc-reward .hc-rw-text { color:var(--text-secondary); font-weight:600; }
   .hc-reward .hc-rw-next { color:var(--text-tertiary); font-size:11px; margin-left:auto; }
+  /* 暗色主题习惯卡片对比度提升 */
+  [data-theme="starry"] .hc-total, [data-theme="crimson"] .hc-total { color:rgba(255,255,255,.7); }
+  [data-theme="starry"] .hc-lvbar-text, [data-theme="crimson"] .hc-lvbar-text { color:rgba(255,255,255,.65); }
+  [data-theme="starry"] .hc-ring-cap, [data-theme="crimson"] .hc-ring-cap { color:rgba(255,255,255,.5); }
+  [data-theme="starry"] .hc-wd .lbl, [data-theme="crimson"] .hc-wd .lbl { color:rgba(255,255,255,.6); }
+  [data-theme="starry"] .hc-wd .dot, [data-theme="crimson"] .hc-wd .dot { background:rgba(255,255,255,.08); color:rgba(255,255,255,.5); }
+  [data-theme="starry"] .hc-wd .dot.on, [data-theme="crimson"] .hc-wd .dot.on { color:#fff; }
+  [data-theme="starry"] .hc-lvbar, [data-theme="crimson"] .hc-lvbar { background:rgba(255,255,255,.1); }
+  [data-theme="starry"] .hc-reward, [data-theme="crimson"] .hc-reward {
+    background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.08);
+  }
+  [data-theme="starry"] .hc-reward .hc-rw-text, [data-theme="crimson"] .hc-reward .hc-rw-text { color:rgba(255,255,255,.8); }
+  [data-theme="starry"] .hc-reward .hc-rw-next, [data-theme="crimson"] .hc-reward .hc-rw-next { color:rgba(255,255,255,.5); }
+  [data-theme="starry"] .hc-lv-badge, [data-theme="crimson"] .hc-lv-badge { background:rgba(255,255,255,.1); }
 
   /* module hero header (per-type summary) */
   .hero { display:flex; align-items:center; gap: 13px; padding: 12px 16px; border-radius: var(--radius-tile);
