@@ -1441,19 +1441,20 @@ function trendTileHTML(){
 /* 今日/未来提醒：todo 中带 remindAt 且未完成的项 */
 function remindTileHTML(){
   const all=(data.todo||[]).filter(x=>!x.done && x.remindAt).map(x=>{
-    const t=parseRemindAt(x.remindAt); return { x, ts: t?t.getTime():0 };
+    const t=getEffectiveRemindAt(x); return { x, ts: t?t.getTime():0 };
   }).sort((a,b)=>a.ts-b.ts);
   const now = Date.now();
   const rows = all.length ? all.slice(0,4).map(({x,ts})=>{
     const due = ts - now; let label = "";
-    if(due < 0) label = "已超时";
+    const isWeekly = x.repeat==="weekly";
+    if(due < 0 && !isWeekly) label = "已超时";
     else if(due < 3600000) label = `${Math.ceil(due/60000)} 分钟后`;
     else if(due < 86400000) label = `${Math.floor(due/3600000)} 小时后`;
-    else label = fmtTime(x.remindAt).slice(0,5);
-    const overdue = due < 0;
+    else label = isWeekly ? "每周"+fmtTime(new Date(ts).toISOString()).slice(0,5) : fmtTime(new Date(ts).toISOString()).slice(0,5);
+    const overdue = due < 0 && !isWeekly;
     return `<div class="book-row js-pin-open" data-mkey="todo" data-id="${x.id}">
       <span class="spine" style="background:${overdue?'var(--danger)':'var(--module-3)'}">${icon("bell",16)}</span>
-      <div class="bmid"><div class="btt">${esc(x.title)}</div><div class="bsub" style="color:${overdue?'var(--danger)':'var(--text-secondary)'}">${label} · ${x.priority||"P1"}</div></div>
+      <div class="bmid"><div class="btt">${esc(x.title)}</div><div class="bsub" style="color:${overdue?'var(--danger)':'var(--text-secondary)'}">${label} · ${x.priority||"P1"}${isWeekly?' · 每周重复':''}</div></div>
       <span class="bpct" style="color:${overdue?'var(--danger)':'var(--module-3)'}">${overdue?'!':'⏰'}</span></div>`;
   }).join("") : `<div class="focus-empty">暂无提醒。在待办里设置「提醒时间」后，到点会自动通知。</div>`;
   const pending = (data.__pendingAuto||[]).length;
@@ -1819,11 +1820,11 @@ function renderQuadrantView(items){
   const qCard=(q,label,color)=>`<div class="q-col">
     <div class="q-head" style="border-left-color:${color}"><span class="qh-l">${label}</span><span class="qh-n">${qs[q].length}</span></div>
     <div class="q-items">${qs[q].length?qs[q].map(x=>{
-      const urg=x.urgency&&remindUrgency(x.remindAt)?remindUrgency(x.remindAt):null;
+      const urg=x.urgency&&remindUrgency(x.remindAt,x.repeat)?remindUrgency(x.remindAt,x.repeat):null;
       return `<div class="q-item ${x.done?'done':''}" data-edit="${x.id}">
         <div class="qi-chk js-chk ${x.done?'on':''}" data-id="${x.id}">${x.done?icon("check",11,2):''}</div>
         <div class="qi-body"><div class="qi-t">${esc(x.title)}</div>
-          ${x.remindAt?`<div class="qi-r">${icon("bell",10)} ${fmtTime(x.remindAt)}</div>`:''}</div>
+          ${x.remindAt?`<div class="qi-r">${icon("bell",10)} ${x.repeat==="weekly"?(remindUrgency(x.remindAt,x.repeat)?.label||fmtTime(x.remindAt)):fmtTime(x.remindAt)}</div>`:''}</div>
         <div class="qi-iu" title="重要${x.importance||3}/紧急${x.urgency||3}">I${x.importance||3}·U${x.urgency||3}</div>
       </div>`;
     }).join(""):`<div class="q-empty">暂无</div>`}</div>
@@ -1871,8 +1872,8 @@ function recHTML(m,x){
 
   // default layout
   if(m.type==="todo"){ const p=(m.priorities||[]).find(p=>p.key===x.priority);
-    const urg = x.remindAt && !x.done ? remindUrgency(x.remindAt) : null;
-    const remindBadge = remindBadgeHTML(x.remindAt);
+    const urg = x.remindAt && !x.done ? remindUrgency(x.remindAt, x.repeat) : null;
+    const remindBadge = remindBadgeHTML(x.remindAt, x.repeat);
     const urgAttr = urg && urg.level==="overdue" ? ` data-urgent="overdue"` : "";
     return `<div class="rec ${layoutCls}"${urgAttr}>${acts}<div class="top" style="padding-right:60px"><div class="chk js-chk ${x.done?'on':''}" data-id="${x.id}">${chkMark}</div>
       ${thumb}
@@ -1946,6 +1947,9 @@ function openEditor(key,item){
       </div>
       <div class="field"><label>提醒时间（可选）</label>
         <input id="f-remind" type="datetime-local" value="${attr((d.remindAt||'').slice(0,16))}" style="flex:1"/>
+        <label class="repeat-toggle" style="display:flex;align-items:center;gap:6px;margin-top:6px;cursor:pointer;font-size:12.5px;color:var(--text-secondary)">
+          <input type="checkbox" id="f-repeat" ${d.repeat==='weekly'?'checked':''} style="width:16px;height:16px;cursor:pointer"/>
+          每周重复（不标记逾期，自动顺延到下周同一时间）</label>
         <p class="sub" style="margin:5px 0 0;font-size:11.5px">到点会同时触发浏览器通知 + 应用内 toast（页面需保持打开）</p></div>
       <div class="field"><label>备注</label><textarea id="f-note" placeholder="补充说明">${esc(d.note||'')}</textarea></div>`;
   } else if(m.type==="checkin"){
@@ -2013,7 +2017,8 @@ function openEditor(key,item){
     if(m.type==="todo"){ d.priority=seg("#f-prio")||d.priority; d.note=(val("#f-note")||"").trim();
       d.importance = Math.max(1,Math.min(5,+val("#f-imp")||3));
       d.urgency = Math.max(1,Math.min(5,+val("#f-urg")||3));
-      const r=val("#f-remind"); d.remindAt = r ? `${r}:00` : ""; }
+      const r=val("#f-remind"); d.remindAt = r ? `${r}:00` : "";
+      d.repeat = overlay.querySelector("#f-repeat")?.checked ? "weekly" : ""; }
     else if(m.type==="progress"){ d.current=Math.max(0,+val("#f-cur")||0); d.target=Math.max(1,+val("#f-tgt")||1); d.unit=(val("#f-unit")||"").trim(); d.note=(val("#f-note")||"").trim(); }
     else if(m.type==="finance"){ d.type=seg("#f-ftype")||"expense"; d.amount=Math.max(0,+val("#f-amt")||0); d.category=seg("#f-cat")||(m.categories&&m.categories[0])||"其他"; d.date=val("#f-date"); }
     else if(m.type==="note"){ d.mood=seg("#f-mood")||d.mood||""; d.content=(val("#f-content")||"").trim(); d.date=val("#f-date"); }
@@ -2108,8 +2113,14 @@ $("#avatarInput").onchange = e => {
 /* ---------- 时间工具 ---------- */
 function isToday(dateStr){ if(!dateStr) return false; return dateStr === isoToday(); }
 /* 判断待办是否属于今天：无提醒时间视为今天，有提醒时间则日期须为今天 */
+/* 每周重复的待办：检查顺延后的有效提醒时间是否在今天 */
 function isTodoToday(x){
   if(!x.remindAt) return true;
+  if(x.repeat==="weekly"){
+    const t=getEffectiveRemindAt(x);
+    if(!t) return true;
+    return t.toISOString().slice(0,10) === isoToday();
+  }
   const t=new Date(x.remindAt);
   if(isNaN(t.getTime())) return true;
   return t.toISOString().slice(0,10) === isoToday();
@@ -2121,26 +2132,42 @@ function fmtTime(dateStr){ if(!dateStr) return ""; const d = new Date(dateStr); 
   return `${pad2(d.getMonth()+1)}-${pad2(d.getDate())} 周${wd} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`; }
 
 /* 提醒紧急度：返回 {level:"overdue"|"today"|"soon"|"later", label} */
-function remindUrgency(remindAt){
+/* 对每周重复的待办，传入 repeat="weekly" 则自动顺延到下次提醒时间，不返回 overdue */
+function remindUrgency(remindAt, repeat){
   if(!remindAt) return null;
-  const t = new Date(remindAt);
+  let t = new Date(remindAt);
   if(isNaN(t.getTime())) return null;
   const now = new Date();
+  /* 每周重复：如果已过期，自动顺延到下周同一时间 */
+  if(repeat==="weekly" && t.getTime() < now.getTime()){
+    while(t.getTime() < now.getTime()) t.setDate(t.getDate()+7);
+  }
   const diff = t.getTime() - now.getTime();
   if(diff < 0) return { level:"overdue", label:"已逾期" };
   if(diff < 60*60*1000) return { level:"soon", label:`${Math.ceil(diff/60000)}分钟后` };
   if(t.toDateString() === now.toDateString()) return { level:"today", label:`今天 ${pad2(t.getHours())}:${pad2(t.getMinutes())}` };
-  if(diff < 2*24*60*60*1000) return { level:"soon", label:fmtTime(remindAt) };
-  return { level:"later", label:fmtTime(remindAt) };
+  if(diff < 2*24*60*60*1000) return { level:"soon", label:fmtTime(t.toISOString()) };
+  return { level:"later", label:repeat==="weekly"?"每周"+fmtTime(t.toISOString()):fmtTime(t.toISOString()) };
 }
 /* 统一渲染提醒徽章 HTML（含紧急度配色） */
-function remindBadgeHTML(remindAt){
+function remindBadgeHTML(remindAt, repeat){
   if(!remindAt) return "";
-  const urg = remindUrgency(remindAt);
+  const urg = remindUrgency(remindAt, repeat);
   if(!urg) return `<span class="remind-badge later" style="background:var(--surface-nested);color:var(--text-tertiary)">${icon("bell",12,2)} ${fmtTime(remindAt)}</span>`;
   const colors = { overdue:{c:"#c25d4f",b:"#f6ece9"}, today:{c:"#bd8a4e",b:"#f6efe6"}, soon:{c:"#5f7a99",b:"#edf1f5"}, later:{c:"#8c877c",b:"#f7f6f1"} };
   const k = colors[urg.level];
   return `<span class="remind-badge ${urg.level}" style="background:${k.b};color:${k.c};border-color:${k.c}33">${icon("bell",12,2.2)} ${urg.label}</span>`;
+}
+/* 获取有效提醒时间（每周重复则自动顺延） */
+function getEffectiveRemindAt(x){
+  if(!x.remindAt) return null;
+  let t = new Date(x.remindAt);
+  if(isNaN(t.getTime())) return null;
+  if(x.repeat==="weekly"){
+    const now = new Date();
+    while(t.getTime() < now.getTime()) t.setDate(t.getDate()+7);
+  }
+  return t;
 }
 function addDaysISO(iso, n){ const d = new Date(`${iso}T00:00:00`); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10); }
 function isoToDate(iso){ return new Date(`${iso}T00:00:00`); }
@@ -2196,7 +2223,7 @@ function checkReminders(){
   const list = data.todo || [];
   list.forEach(x=>{
     if(x.done) return;
-    const t = parseRemindAt(x.remindAt); if(!t) return;
+    const t = getEffectiveRemindAt(x); if(!t) return;
     const diff = t.getTime() - now;
     const key = `__reminded_${x.id}_${t.getTime()}`;
     if(data[key]) return;   // 已提醒过
@@ -2364,7 +2391,8 @@ function buildTodoMarkdown(filterDone){
     if(!byP[k].length) return;
     md += `## ${labels[k]}\n`;
     byP[k].forEach(x=>{
-      const remind = x.remindAt ? ` ⏰ ${fmtTime(x.remindAt)}` : "";
+      const effT = getEffectiveRemindAt(x);
+      const remind = effT ? ` ⏰ ${x.repeat==="weekly"?"每周":""}${fmtTime(effT.toISOString())}` : "";
       const note = x.note ? ` — ${x.note}` : "";
       md += `- [ ] ${x.title}${remind}${note}\n`;
     });
@@ -2463,7 +2491,11 @@ function renderCalendar(){
   // 收集每日事项
   const eventsByDate = {};
   const addEv = (iso, ev)=>{ if(!eventsByDate[iso]) eventsByDate[iso]=[]; eventsByDate[iso].push(ev); };
-  (data.todo||[]).forEach(x=>{ const iso = (x.remindAt||"").slice(0,10); if(iso) addEv(iso, {type:"todo", text:x.title, done:x.done, key:"todo", id:x.id, priority:x.priority}); });
+  (data.todo||[]).forEach(x=>{
+    const t=getEffectiveRemindAt(x); if(!t) return;
+    const iso=t.toISOString().slice(0,10);
+    addEv(iso, {type:"todo", text:x.title, done:x.done, key:"todo", id:x.id, priority:x.priority, repeat:x.repeat});
+  });
   (data.goal||[]).forEach(x=>{ addEv(isoToday(), {type:"goal", text:`目标·${x.title}`, key:"goal", id:x.id}); });
   (data.checkin||[]).forEach(x=>{ if(x.log && x.log[isoToday()]) addEv(isoToday(), {type:"checkin", text:`✓ ${x.title}`, key:"checkin", id:x.id}); });
   (data.notes||[]).forEach(x=>{ if(x.date) addEv(x.date, {type:"note", text:x.title, key:"notes", id:x.id}); });
@@ -2638,7 +2670,7 @@ function renderAutoExtract(){
       <div class="top" style="padding-right:60px">
         <div class="body" style="flex-direction:column;align-items:stretch;gap:6px">
           <div><span class="rname">${esc(t.title)}</span><span class="auto-badge">自动提取</span></div>
-          ${t.remindAt?remindBadgeHTML(t.remindAt):""}
+          ${t.remindAt?remindBadgeHTML(t.remindAt,t.repeat):""}
           <div class="rnote">${esc(t.note||"")}</div>
         </div>
       </div>
@@ -2743,7 +2775,7 @@ function renderExternal(){
       <div class="top" style="padding-right:60px">
         <div class="body" style="flex-direction:column;align-items:stretch;gap:6px">
           <div><span class="rname">${esc(x.title)}</span><span class="auto-badge">本地规则</span></div>
-          ${x.remindAt?remindBadgeHTML(x.remindAt):""}
+          ${x.remindAt?remindBadgeHTML(x.remindAt,x.repeat):""}
           <div class="rnote">${esc(x.note||"")}</div>
         </div>
       </div>
@@ -3025,7 +3057,7 @@ function renderLLMResult(tasks, sourceLabel, sourceTag){
         <div class="body" style="flex-direction:column;align-items:stretch;gap:6px">
           <div><span class="rname">${esc(t.title||"")}</span><span class="auto-badge" style="background:var(--module-2);color:#fff">${sourceLabel}</span></div>
           ${t.priority?`<span class="badge" style="background:var(--accent-muted);color:var(--accent);font-size:11px">${esc(t.priority)}</span>`:""}
-          ${t.remindAt?remindBadgeHTML(t.remindAt):""}
+          ${t.remindAt?remindBadgeHTML(t.remindAt,t.repeat):""}
           ${t.note?`<div class="rnote">${esc(t.note)}</div>`:""}
         </div>
       </div>
