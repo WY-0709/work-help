@@ -4,6 +4,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#2d4a3e" />
+<link rel="manifest" href="manifest.webmanifest" />
 <title>个人工作台 · 待办·打卡·提醒·复盘</title>
 <style>
   /* ============================================================
@@ -1829,7 +1831,11 @@ function renderModule(key){
     const todayIt=all.filter(x=>isTodoToday(x));
     const done=todayIt.filter(x=>x.done).length;
     head=headHero(m, `${done}/${todayIt.length}`, `今日已完成 · 共 ${all.length} 条`);
-    head += `<div style="margin-top:8px"><button class="btn ghost" id="btn-test-alarm" style="font-size:12px;padding:6px 12px">🔔 测试铃声</button></div>`;
+    head += `<div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn ghost" id="btn-test-alarm" style="font-size:12px;padding:6px 12px">🔔 测试铃声</button>
+      <button class="btn ghost" id="btn-enable-notify" style="font-size:12px;padding:6px 12px">🔔 开启系统通知</button>
+      <button class="btn ghost" id="btn-install-app" style="font-size:12px;padding:6px 12px;display:none">📱 安装到桌面</button>
+    </div>`;
   } else if(m.type==="checkin"){
     const done=all.filter(x=>x.log&&x.log[t]).length;
     head=headHero(m, `${done}/${all.length}`, "今日已打卡");
@@ -1907,6 +1913,40 @@ function renderModule(key){
   s.addEventListener("input",()=>{ if(!composing) refresh(); });
   $("#btn-new").onclick=()=>openEditor(key,null);
   const testAlarmBtn=$("#btn-test-alarm"); if(testAlarmBtn) testAlarmBtn.onclick=()=>testAlarmSound();
+  // 开启系统通知
+  const enableNotifyBtn=$("#btn-enable-notify");
+  if(enableNotifyBtn){
+    const updateNotifyBtn=()=>{
+      if(!("Notification" in window)){ enableNotifyBtn.textContent="浏览器不支持通知"; enableNotifyBtn.disabled=true; return; }
+      if(Notification.permission==="granted"){ enableNotifyBtn.textContent="✅ 通知已开启"; enableNotifyBtn.disabled=true; }
+      else if(Notification.permission==="denied"){ enableNotifyBtn.textContent="通知已被禁止，请在浏览器设置中允许"; enableNotifyBtn.disabled=true; }
+    };
+    updateNotifyBtn();
+    enableNotifyBtn.onclick=()=>{
+      if("Notification" in window){
+        Notification.requestPermission().then(p=>{
+          notifyReady = (p==="granted");
+          updateNotifyBtn();
+          if(notifyReady) toast({type:"info", title:"通知已开启", msg:"到点会在系统通知栏提醒你，后台也能收到", duration:3000});
+        });
+      }
+    };
+  }
+  // 安装到桌面（PWA）
+  const installBtn=$("#btn-install-app");
+  if(installBtn){
+    window.addEventListener("beforeinstallprompt", (e)=>{
+      e.preventDefault();
+      window.__deferredInstall = e;
+      installBtn.style.display = "";
+    });
+    installBtn.onclick=()=>{
+      if(window.__deferredInstall){
+        window.__deferredInstall.prompt();
+        window.__deferredInstall.userChoice.then(()=>{ installBtn.style.display="none"; });
+      }
+    };
+  }
   // 待办排序 + 视图切换
   const sortSeg=$("#sort-seg"); if(sortSeg) sortSeg.querySelectorAll(".opt").forEach(o=>o.onclick=()=>{ todoSort=o.dataset.v; localStorage.setItem("__todoSort",todoSort); renderModule(key); });
   const viewSeg=$("#view-seg"); if(viewSeg) viewSeg.querySelectorAll(".opt").forEach(o=>o.onclick=()=>{ todoView=o.dataset.v; localStorage.setItem("__todoView",todoView); renderModule(key); });
@@ -2690,11 +2730,21 @@ function testAlarmSound(){
 /* ---------- 浏览器原生通知 ---------- */
 let notifyReady = false;
 let reminderTimer = null;
+let swRegistered = false;
+
 function setupNotifications(){
   // 请求通知权限（不阻止提醒检查）
   if("Notification" in window){
     if(Notification.permission === "granted"){ notifyReady = true; }
-    else if(Notification.permission !== "denied"){ Notification.requestPermission().then(p=>{ notifyReady = (p==="granted"); }); }
+    else if(Notification.permission !== "denied"){
+      Notification.requestPermission().then(p=>{ notifyReady = (p==="granted"); });
+    }
+  }
+  // 注册 Service Worker（支持后台通知、PWA 安装）
+  if("serviceWorker" in navigator){
+    navigator.serviceWorker.register("sw.js").then(reg=>{
+      swRegistered = true;
+    }).catch(()=>{});
   }
   if(!clockTimer) startClock();
   // 每 10 秒检查一次提醒，确保不漏
@@ -2702,11 +2752,34 @@ function setupNotifications(){
     reminderTimer = setInterval(checkReminders, 10000);
     checkReminders();
   }
+  // 页面从后台切回前台时，立即补检查
+  document.addEventListener("visibilitychange", ()=>{
+    if(!document.hidden) checkReminders();
+  });
 }
-function fireNativeNotify(title, body){
+function fireNativeNotify(title, body, tag){
+  const notifyOpts = {
+    body,
+    icon: "assets/greet-banner.jpg",
+    badge: "assets/greet-banner.jpg",
+    requireInteraction: true,   // 后台停留，直到用户点击
+    tag: tag || ("reminder-" + Date.now()),
+    renotify: true,
+    silent: false,
+  };
   if(notifyReady){
-    try { new Notification(title, { body, icon: "assets/greet-banner.jpg" }); }
-    catch(e){ toast({type:"remind", title, msg:body, duration:0}); }
+    try {
+      // 优先用 Service Worker 发通知（后台更可靠）
+      if(swRegistered && navigator.serviceWorker.controller){
+        navigator.serviceWorker.controller.postMessage({
+          type: "notify", title, body, tag: notifyOpts.tag
+        });
+      } else {
+        new Notification(title, notifyOpts);
+      }
+    } catch(e){
+      toast({type:"remind", title, msg:body, duration:0});
+    }
   } else {
     toast({type:"remind", title, msg:body, duration:0});
   }
@@ -2724,7 +2797,7 @@ function checkReminders(){
     if(diff <= 0 && diff > -7200000){
       data[key] = true; store.save();
       startAlarm();   // 播放声音闹钟
-      fireNativeNotify(`提醒：${x.title}`, x.note || `时间到了，记得完成「${x.title}」`);
+      fireNativeNotify(`提醒：${x.title}`, x.note || `时间到了，记得完成「${x.title}」`, `todo-${x.id}`);
       toast({type:"remind", title:`⏰ ${x.title}`, msg:`时间到 · ${x.note||"该完成这项任务了"}`, duration:0, onClose: stopAlarm,
         actions:[
           {label:"我知道了", onClick:()=>{ stopAlarm(); }},
