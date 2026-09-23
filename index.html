@@ -1829,6 +1829,7 @@ function renderModule(key){
     const todayIt=all.filter(x=>isTodoToday(x));
     const done=todayIt.filter(x=>x.done).length;
     head=headHero(m, `${done}/${todayIt.length}`, `今日已完成 · 共 ${all.length} 条`);
+    head += `<div style="margin-top:8px"><button class="btn ghost" id="btn-test-alarm" style="font-size:12px;padding:6px 12px">🔔 测试铃声</button></div>`;
   } else if(m.type==="checkin"){
     const done=all.filter(x=>x.log&&x.log[t]).length;
     head=headHero(m, `${done}/${all.length}`, "今日已打卡");
@@ -1905,6 +1906,7 @@ function renderModule(key){
   s.addEventListener("compositionend",()=>{ composing=false; refresh(); });
   s.addEventListener("input",()=>{ if(!composing) refresh(); });
   $("#btn-new").onclick=()=>openEditor(key,null);
+  const testAlarmBtn=$("#btn-test-alarm"); if(testAlarmBtn) testAlarmBtn.onclick=()=>testAlarmSound();
   // 待办排序 + 视图切换
   const sortSeg=$("#sort-seg"); if(sortSeg) sortSeg.querySelectorAll(".opt").forEach(o=>o.onclick=()=>{ todoSort=o.dataset.v; localStorage.setItem("__todoSort",todoSort); renderModule(key); });
   const viewSeg=$("#view-seg"); if(viewSeg) viewSeg.querySelectorAll(".opt").forEach(o=>o.onclick=()=>{ todoView=o.dataset.v; localStorage.setItem("__todoView",todoView); renderModule(key); });
@@ -2583,7 +2585,7 @@ function ensureToastStack(){
   return toastStack;
 }
 function toast(opts){
-  const { type="info", title="", msg="", actions=[], duration=5000 } = opts;
+  const { type="info", title="", msg="", actions=[], duration=5000, onClose=null } = opts;
   const stack = ensureToastStack();
   const el = document.createElement("div");
   el.className = `toast ${type}`;
@@ -2593,11 +2595,96 @@ function toast(opts){
       ${actions.length?`<div class="tx">${actions.map((a,i)=>`<button data-i="${i}">${esc(a.label)}</button>`).join("")}</div>`:""}</div>
     <button class="close" title="关闭">${icon("close",14,2)}</button>`;
   stack.appendChild(el);
-  const remove = ()=>{ el.style.transition="opacity .2s, transform .2s"; el.style.opacity=0; el.style.transform="translateX(20px)"; setTimeout(()=>el.remove(), 220); };
+  const remove = ()=>{ el.style.transition="opacity .2s, transform .2s"; el.style.opacity=0; el.style.transform="translateX(20px)"; setTimeout(()=>el.remove(), 220); if(onClose) onClose(); };
   el.querySelector(".close").onclick = remove;
   el.querySelectorAll(".tx button").forEach(b=>b.onclick=()=>{ const a=actions[+b.dataset.i]; if(a&&a.onClick) a.onClick(); remove(); });
   if(duration>0) setTimeout(remove, duration);
   return el;
+}
+
+/* ---------- 声音闹钟系统（Web Audio API，无需外部文件） ---------- */
+let audioCtx = null;
+let alarmNodes = [];
+let alarmTimer = null;
+let alarmPlaying = false;
+function ensureAudioCtx(){
+  if(audioCtx) return audioCtx;
+  try { audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }
+  catch(e){ return null; }
+  return audioCtx;
+}
+// 首次用户交互解锁音频上下文（浏览器策略要求）
+function unlockAudio(){
+  const ctx = ensureAudioCtx();
+  if(ctx && ctx.state === "suspended") ctx.resume();
+}
+document.addEventListener("click", unlockAudio, {once:true});
+document.addEventListener("keydown", unlockAudio, {once:true});
+
+// 播放单个音符
+function playNote(ctx, freq, startAt, duration, gain=0.25){
+  const osc = ctx.createOscillator();
+  const g = ctx.createGain();
+  osc.type = "sine";
+  osc.frequency.value = freq;
+  g.gain.setValueAtTime(0, startAt);
+  g.gain.linearRampToValueAtTime(gain, startAt + 0.02);
+  g.gain.exponentialRampToValueAtTime(0.001, startAt + duration);
+  osc.connect(g); g.connect(ctx.destination);
+  osc.start(startAt);
+  osc.stop(startAt + duration);
+  alarmNodes.push(osc, g);
+}
+
+// 闹钟旋律：清脆的"叮咚叮咚"循环
+function playAlarmOnce(ctx, now){
+  // 音符序列：高频 + 低频交替，类似门铃
+  const notes = [
+    {f: 880, d: 0.18},   // A5
+    {f: 659, d: 0.28},   // E5
+    {f: 880, d: 0.18},   // A5
+    {f: 659, d: 0.28},   // E5
+    {f: 1047, d: 0.35},  // C6
+  ];
+  let t = now + 0.05;
+  notes.forEach(n=>{ playNote(ctx, n.f, t, n.d, 0.3); t += n.d; });
+  return t;
+}
+
+function startAlarm(){
+  if(alarmPlaying) return;
+  const ctx = ensureAudioCtx();
+  if(!ctx) return;
+  if(ctx.state === "suspended") ctx.resume();
+  alarmPlaying = true;
+  alarmNodes = [];
+  const loop = ()=>{
+    if(!alarmPlaying) return;
+    const now = ctx.currentTime;
+    playAlarmOnce(ctx, now);
+    // 下一轮间隔（旋律时长约 1.3s，停顿 1.2s）
+    alarmTimer = setTimeout(loop, 2500);
+  };
+  loop();
+}
+
+function stopAlarm(){
+  alarmPlaying = false;
+  if(alarmTimer){ clearTimeout(alarmTimer); alarmTimer = null; }
+  alarmNodes.forEach(n=>{ try{ n.stop(); n.disconnect(); }catch(e){} });
+  alarmNodes = [];
+}
+
+// 测试铃声（用户点击时触发，用于验证声音可用）
+function testAlarmSound(){
+  stopAlarm();
+  alarmPlaying = true;
+  const ctx = ensureAudioCtx();
+  if(!ctx){ toast({type:"warn", title:"无法播放声音", msg:"当前浏览器不支持 Web Audio API"}); return; }
+  if(ctx.state === "suspended") ctx.resume();
+  const now = ctx.currentTime;
+  playAlarmOnce(ctx, now);
+  alarmTimer = setTimeout(()=>{ stopAlarm(); }, 1800);
 }
 
 /* ---------- 浏览器原生通知 ---------- */
@@ -2629,9 +2716,13 @@ function checkReminders(){
     if(data[key]) return;   // 已提醒过
     if(diff <= 0 && diff > -60000){   // 到点（1 分钟内）
       data[key] = true; store.save();
+      startAlarm();   // 播放声音闹钟
       fireNativeNotify(`提醒：${x.title}`, x.note || `时间到了，记得完成「${x.title}」`);
-      toast({type:"remind", title:`⏰ ${x.title}`, msg:`时间到 · ${x.note||"该完成这项任务了"}`, duration:0,
-        actions:[{label:"去完成", onClick:()=>{ go("todo"); }}]});
+      toast({type:"remind", title:`⏰ ${x.title}`, msg:`时间到 · ${x.note||"该完成这项任务了"}`, duration:0, onClose: stopAlarm,
+        actions:[
+          {label:"我知道了", onClick:()=>{ stopAlarm(); }},
+          {label:"去完成", onClick:()=>{ stopAlarm(); go("todo"); }}
+        ]});
     }
   });
 }
