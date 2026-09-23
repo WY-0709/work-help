@@ -2689,13 +2689,19 @@ function testAlarmSound(){
 
 /* ---------- 浏览器原生通知 ---------- */
 let notifyReady = false;
+let reminderTimer = null;
 function setupNotifications(){
-  if(!("Notification" in window)) return;
-  if(Notification.permission === "granted"){ notifyReady = true; }
-  else if(Notification.permission !== "denied"){ Notification.requestPermission().then(p=>{ notifyReady = (p==="granted"); }); }
+  // 请求通知权限（不阻止提醒检查）
+  if("Notification" in window){
+    if(Notification.permission === "granted"){ notifyReady = true; }
+    else if(Notification.permission !== "denied"){ Notification.requestPermission().then(p=>{ notifyReady = (p==="granted"); }); }
+  }
   if(!clockTimer) startClock();
-  setInterval(checkReminders, 30000);   // 每 30s 检查一次
-  checkReminders();
+  // 每 10 秒检查一次提醒，确保不漏
+  if(!reminderTimer){
+    reminderTimer = setInterval(checkReminders, 10000);
+    checkReminders();
+  }
 }
 function fireNativeNotify(title, body){
   if(notifyReady){
@@ -2714,7 +2720,8 @@ function checkReminders(){
     const diff = t.getTime() - now;
     const key = `__reminded_${x.id}_${t.getTime()}`;
     if(data[key]) return;   // 已提醒过
-    if(diff <= 0 && diff > -60000){   // 到点（1 分钟内）
+    // 到点或已过点 2 小时内提醒（太久以前的不再弹，避免打开页面时一堆旧提醒）
+    if(diff <= 0 && diff > -7200000){
       data[key] = true; store.save();
       startAlarm();   // 播放声音闹钟
       fireNativeNotify(`提醒：${x.title}`, x.note || `时间到了，记得完成「${x.title}」`);
