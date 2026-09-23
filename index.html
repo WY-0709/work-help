@@ -381,7 +381,7 @@
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
-    background: var(--page-bg); color: var(--text); font-family: var(--font); font-style: var(--font-style, normal); font-size: 14px; line-height: 1.5;
+    background: var(--page-bg); color: var(--text); font-family: var(--font); font-style: var(--font-style, normal); font-size: var(--font-size, 14px); font-weight: var(--font-weight, 400); line-height: 1.5;
     -webkit-font-smoothing: antialiased; min-height: 100vh; min-width: 1000px;
   }
   body::before { content:""; position:fixed; inset:0; z-index:-1; pointer-events:none;
@@ -571,7 +571,7 @@
   .btn.ghost:hover { color:var(--text); }
   .btn.danger { background:var(--danger); }
   .spacer { flex:1; }
-  input, textarea { font-family:var(--font); font-size:14px; border:1px solid var(--border-input); border-radius:10px;
+  input, textarea { font-family:var(--font); font-size:var(--font-size, 14px); border:1px solid var(--border-input); border-radius:10px;
     padding:9px 12px; background:var(--surface-card); color:var(--text); outline:none; transition: border-color .15s, box-shadow .15s; width:100%; }
   input:focus, textarea:focus { border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-muted); }
   textarea { resize:vertical; min-height:80px; }
@@ -1256,8 +1256,8 @@
         <button class="fs-opt" data-font="songti" title="宋体" style="font-family:'Noto Serif SC','Songti SC','Source Han Serif SC','SimSun',serif">宋</button>
         <button class="fs-opt" data-font="kaiti" title="楷体" style="font-family:'Kaiti SC','STKaiti','楷体','KaiTi','BiauKai',cursive">楷</button>
         <button class="fs-opt" data-font="yahei" title="微软雅黑" style="font-family:'Microsoft YaHei','微软雅黑','PingFang SC',sans-serif">雅</button>
-        <button class="fs-opt" data-font="pixel" title="像素体" style="font-family:'Press Start 2P','VT323','DotGothic16','Courier New',monospace">像</button>
-        <button class="fs-opt" data-font="xingkai" title="古风行楷" style="font-family:'STXingkai','Xingkai SC','华文行楷','Kaiti SC','STKaiti',cursive">行</button>
+        <button class="fs-opt" data-font="miaomiao" title="喵喵体" style="font-family:'DotGothic16','VT323','Press Start 2P','Courier New',monospace">喵</button>
+        <button class="fs-opt" data-font="xingkai" title="古风行楷" style="font-family:'STXingkai','Xingkai SC','华文行楷','STKaiti','Kaiti SC',cursive;font-weight:600">行</button>
       </div>
     </div>
     <div class="foot" id="foot">数据存本机浏览器 · 自动提取任务 · 钉钉轻量推送</div>
@@ -3541,19 +3541,38 @@ const FONT_STACKS = {
   songti:   '"Noto Serif SC", "Songti SC", "Source Han Serif SC", "SimSun", serif',
   kaiti:    '"Kaiti SC", "STKaiti", "楷体", "KaiTi", "BiauKai", "PingFang SC", cursive',
   yahei:    '"Microsoft YaHei", "微软雅黑", "PingFang SC", -apple-system, system-ui, sans-serif',
-  pixel:    '"Press Start 2P", "VT323", "DotGothic16", "Courier New", monospace',
-  xingkai:  '"STXingkai", "Xingkai SC", "华文行楷", "Kaiti SC", "STKaiti", cursive',
+  miaomiao: '"DotGothic16", "VT323", "Press Start 2P", "Courier New", monospace',
+  xingkai:  '"STXingkai", "Xingkai SC", "华文行楷", "STKaiti", "Kaiti SC", "楷体", "KaiTi", cursive',
 };
 const FONT_STYLES = {};
-const FONT_NAMES = { default:"跟随主题", songti:"宋体", kaiti:"楷体", yahei:"微软雅黑", pixel:"像素体", xingkai:"古风行楷" };
+// 不同字体的基准字号（装饰字体需放大，像素字体需缩小）
+const FONT_SIZES = {
+  default:  "14px",
+  songti:   "14px",
+  kaiti:    "15px",
+  yahei:    "14px",
+  miaomiao: "13px",
+  xingkai:  "17px",
+};
+// 古风字体默认加粗，避免纤细看不清
+const FONT_WEIGHTS = {
+  xingkai: "600",
+  kaiti:   "500",
+};
+const FONT_NAMES = { default:"跟随主题", songti:"宋体", kaiti:"楷体", yahei:"微软雅黑", miaomiao:"喵喵体", xingkai:"古风行楷" };
 function applyFont(font){
   if(!FONT_STACKS[font]) font = "default";
   if(font === "default"){
     document.documentElement.style.removeProperty("--font");
     document.documentElement.style.removeProperty("--font-style");
+    document.documentElement.style.removeProperty("--font-size");
+    document.documentElement.style.removeProperty("--font-weight");
   } else {
     document.documentElement.style.setProperty("--font", FONT_STACKS[font]);
     document.documentElement.style.setProperty("--font-style", FONT_STYLES[font]||"normal");
+    document.documentElement.style.setProperty("--font-size", FONT_SIZES[font]||"14px");
+    if(FONT_WEIGHTS[font]) document.documentElement.style.setProperty("--font-weight", FONT_WEIGHTS[font]);
+    else document.documentElement.style.removeProperty("--font-weight");
   }
   try { localStorage.setItem("wb-font", font); } catch(e){}
   document.querySelectorAll(".fs-opt").forEach(btn=>{
